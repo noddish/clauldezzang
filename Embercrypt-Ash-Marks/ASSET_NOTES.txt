@@ -1,0 +1,34 @@
+Artwork — version 0.4 / Reference image art pilot
+The active artwork is in assets/pixel16/: 42 individual PNG files.
+New AI-generated artwork was designed specifically for this project using the supplied EMBERCRYPT reference
+and a shared mature 16-bit RPG brief. It is not a filtered or reduced version of the old artwork.
+New master sheets were technically separated and normalized to native grids with
+nearest-neighbor export in Godot, then connected via scripts/art_assets.gd.
+Portraits: 4 × 128x128, frontal adult faces and shoulders.
+Enemy: 8 × 192x192 animation poses, bronze/burgundy skeleton guard.
+Environment: 6 × 192x192 stone, vault, door and altar surfaces.
+Props: 8 × 128x128; items: 4 × 96x96; action icons: 8 × 64x64.
+Torches: 4 × 64x128 animation frames.
+Each PNG is independently usable. Native transparency is binary, removing matte residue.
+Stone surfaces use world-space texture coordinates to maintain a consistent detail scale.
+Enemy anticipation uses the complete alternate pose; action timing is unchanged.
+The portrait master central grid is extracted and eye lines aligned on 128px canvases. Runtime sampling is nearest, without mipmaps.
+The native dimensions vary by asset role so the amount of visible detail suits
+its display size; the same palette, stepped contours and clustered shading apply.
+The pixel_lighting shader steps local diffuse light into four levels. Torches and
+Gothic windows cast localized amber/teal light; there is no global hue wash or bloom.
+The existing UI layout, game rules, controls and animation timing are preserved.
+No Underkeep screenshots, sprites, audio or code are distributed.
+AI-generated frame shapes may still need manual production cleanup in later passes.
+
+Sound
+All short sound cues are synthesized locally by scripts/sound.gd.
+
+Fonts
+interface.otf is a Korean/Latin subset of Noto Sans CJK KR.
+Upstream copyright and SIL Open Font License 1.1 are in FONT_LICENSE.txt.
+title.ttf is DejaVu Serif, with TITLE_FONT_LICENSE.txt.
+
+Engine
+Requires Godot 4.6.3 Standard (GDScript, OpenGL Compatibility).
+Godot is not bundled. This is source, not an Android APK or iOS build.

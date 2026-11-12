@@ -1,0 +1,22 @@
+v0.4 Reference image art pilot — verification
+
+Godot 4.6.3 Linux / OpenGL Compatibility
+Rules: 29 checks, 0 failures.
+UI: 73 checks, 0 failures.
+Full walkthrough: key → door → combat → treasure, 100 gold, PASS.
+Captured the same combat scene at 1280x760, 390x844 and 844x390.
+
+Compared with v0.3: dungeon_state.gd, main.gd, hud.gd and sound.gd are byte-identical.
+Changed only artwork, world material mapping, local lighting and asset preparation.
+Existing movement/combat timing and UI layout are preserved.
+
+Art: 42 independent PNGs, dimensions verified; transparent sprites use binary alpha.
+Nearest sampling and disabled mipmaps preserve sharp pixel edges.
+Environment: 192px tiles mapped over 2.6 world units; guard: 192px canvas over 2.3475 units.
+
+Preview: all 17 images load; before/after comparison and 2x/3x portrait zoom pass.
+No page overflow at widths 1440/768/390/320; no JavaScript errors.
+The bundled video is a recording of the newly styled project's successful walkthrough.
+
+Rendering was checked using a desktop software GPU. Physical Android/iPhone testing
+and mobile package builds have not been performed for this art pilot.

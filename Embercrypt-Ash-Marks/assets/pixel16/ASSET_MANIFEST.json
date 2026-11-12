@@ -1,0 +1,766 @@
+{
+	"alpha_policy": "Transparent assets use binary native-pixel silhouettes (0.5 cutoff); no matte residue or softened edges.",
+	"asset_count": 42,
+	"categories": {
+		"enemy": {
+			"assets": [
+				{
+					"canvas_offset_y": 10,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "enemy/idle.png",
+					"source_cell": 0,
+					"source_rect": [
+						0,
+						0,
+						444,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 10,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "enemy/anticipation.png",
+					"source_cell": 5,
+					"source_rect": [
+						444,
+						444,
+						443,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 10,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "enemy/strike.png",
+					"source_cell": 2,
+					"source_rect": [
+						887,
+						0,
+						444,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 10,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "enemy/hit.png",
+					"source_cell": 3,
+					"source_rect": [
+						1331,
+						0,
+						443,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 10,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "enemy/idle_alt.png",
+					"source_cell": 4,
+					"source_rect": [
+						0,
+						444,
+						444,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 10,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "enemy/anticipation_alt.png",
+					"source_cell": 5,
+					"source_rect": [
+						444,
+						444,
+						443,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 10,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "enemy/dying.png",
+					"source_cell": 6,
+					"source_rect": [
+						887,
+						444,
+						444,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 10,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "enemy/dead.png",
+					"source_cell": 7,
+					"source_rect": [
+						1331,
+						444,
+						443,
+						443
+					]
+				}
+			],
+			"grid": [
+				4,
+				2
+			],
+			"master": "/workspace/generated_images/exec-35e065b0-8d10-4415-82e1-46ec8120b0fd.png",
+			"master_sha256": "49362ae52d13b751cd8f85d001b1e3692256bb7832ad872d80ac7ec53fa24dff",
+			"native_size": [
+				192,
+				192
+			],
+			"source_size": [
+				1774,
+				887
+			]
+		},
+		"environment": {
+			"assets": [
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "environment/wall_plain.png",
+					"source_cell": 0,
+					"source_rect": [
+						0,
+						0,
+						512,
+						512
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "environment/wall_runes.png",
+					"source_cell": 1,
+					"source_rect": [
+						512,
+						0,
+						512,
+						512
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "environment/floor.png",
+					"source_cell": 2,
+					"source_rect": [
+						0,
+						512,
+						512,
+						512
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "environment/vault.png",
+					"source_cell": 3,
+					"source_rect": [
+						512,
+						512,
+						512,
+						512
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "environment/door.png",
+					"source_cell": 4,
+					"source_rect": [
+						0,
+						1024,
+						512,
+						512
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						192,
+						192
+					],
+					"path": "environment/altar.png",
+					"source_cell": 5,
+					"source_rect": [
+						512,
+						1024,
+						512,
+						512
+					]
+				}
+			],
+			"grid": [
+				2,
+				3
+			],
+			"master": "/workspace/generated_images/exec-92f84f47-c2fa-439a-b242-359805ef4fd8.png",
+			"master_sha256": "70b2bc258304757804050c4b77516abe00beeb94456d919468fc4d127bc002f5",
+			"native_size": [
+				192,
+				192
+			],
+			"source_size": [
+				1024,
+				1536
+			]
+		},
+		"icons": {
+			"assets": [
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						64
+					],
+					"path": "icons/attack.png",
+					"source_cell": 0,
+					"source_rect": [
+						0,
+						0,
+						444,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						64
+					],
+					"path": "icons/bash.png",
+					"source_cell": 1,
+					"source_rect": [
+						444,
+						0,
+						443,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						64
+					],
+					"path": "icons/arrows.png",
+					"source_cell": 2,
+					"source_rect": [
+						887,
+						0,
+						444,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						64
+					],
+					"path": "icons/frost.png",
+					"source_cell": 3,
+					"source_rect": [
+						1331,
+						0,
+						443,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						64
+					],
+					"path": "icons/heal.png",
+					"source_cell": 4,
+					"source_rect": [
+						0,
+						444,
+						444,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						64
+					],
+					"path": "icons/guard.png",
+					"source_cell": 5,
+					"source_rect": [
+						444,
+						444,
+						443,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						64
+					],
+					"path": "icons/potion.png",
+					"source_cell": 6,
+					"source_rect": [
+						887,
+						444,
+						444,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						64
+					],
+					"path": "icons/compass.png",
+					"source_cell": 7,
+					"source_rect": [
+						1331,
+						444,
+						443,
+						443
+					]
+				}
+			],
+			"grid": [
+				4,
+				2
+			],
+			"master": "/workspace/generated_images/exec-477f78de-63fd-432b-999a-2e375c981ddc.png",
+			"master_sha256": "e1ec8fefacb37c65256a2ef66cba249b13f295f555be5d0411594c0c1e937353",
+			"native_size": [
+				64,
+				64
+			],
+			"source_size": [
+				1774,
+				887
+			]
+		},
+		"items": {
+			"assets": [
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						96,
+						96
+					],
+					"path": "items/chest_closed.png",
+					"source_cell": 0,
+					"source_rect": [
+						0,
+						0,
+						627,
+						627
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						96,
+						96
+					],
+					"path": "items/chest_open.png",
+					"source_cell": 1,
+					"source_rect": [
+						627,
+						0,
+						627,
+						627
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						96,
+						96
+					],
+					"path": "items/potion.png",
+					"source_cell": 2,
+					"source_rect": [
+						0,
+						627,
+						627,
+						627
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						96,
+						96
+					],
+					"path": "items/key.png",
+					"source_cell": 3,
+					"source_rect": [
+						627,
+						627,
+						627,
+						627
+					]
+				}
+			],
+			"grid": [
+				2,
+				2
+			],
+			"master": "/workspace/generated_images/exec-46af274a-0de7-492c-a9ed-749685492cbf.png",
+			"master_sha256": "4e497eedb538c2c36db56b27995bde5df3ca4f40c76e3cab47e07e42b00a909c",
+			"native_size": [
+				96,
+				96
+			],
+			"source_size": [
+				1254,
+				1254
+			]
+		},
+		"portraits": {
+			"assets": [
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "portraits/warrior.png",
+					"source_cell": 0,
+					"source_rect": [
+						0,
+						444,
+						444,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "portraits/ranger.png",
+					"source_cell": 1,
+					"source_rect": [
+						444,
+						444,
+						443,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 6,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "portraits/mage.png",
+					"source_cell": 2,
+					"source_rect": [
+						0,
+						888,
+						444,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 6,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "portraits/priest.png",
+					"source_cell": 3,
+					"source_rect": [
+						444,
+						888,
+						443,
+						443
+					]
+				}
+			],
+			"grid": [
+				2,
+				2
+			],
+			"master": "/workspace/generated_images/exec-8af9e0e7-2d86-4220-9dad-cd3f47b1b0da.png",
+			"master_sha256": "aa3116f644570689b6abe9045a31b1a817191eb16210f1201a3797d250777cea",
+			"native_size": [
+				128,
+				128
+			],
+			"source_size": [
+				887,
+				1774
+			]
+		},
+		"props": {
+			"assets": [
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "props/banner.png",
+					"source_cell": 0,
+					"source_rect": [
+						0,
+						0,
+						444,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "props/cobweb.png",
+					"source_cell": 1,
+					"source_rect": [
+						444,
+						0,
+						443,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "props/window.png",
+					"source_cell": 2,
+					"source_rect": [
+						887,
+						0,
+						444,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "props/bones.png",
+					"source_cell": 3,
+					"source_rect": [
+						1331,
+						0,
+						443,
+						444
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "props/candles.png",
+					"source_cell": 4,
+					"source_rect": [
+						0,
+						444,
+						444,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "props/urn.png",
+					"source_cell": 5,
+					"source_rect": [
+						444,
+						444,
+						443,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "props/medallion.png",
+					"source_cell": 6,
+					"source_rect": [
+						887,
+						444,
+						444,
+						443
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						128,
+						128
+					],
+					"path": "props/rubble.png",
+					"source_cell": 7,
+					"source_rect": [
+						1331,
+						444,
+						443,
+						443
+					]
+				}
+			],
+			"grid": [
+				4,
+				2
+			],
+			"master": "/workspace/generated_images/exec-1224971a-eca5-4c1b-9e92-260c476e23bc.png",
+			"master_sha256": "ea2fd8e60ad0621b450bd6bc111ff6655f8718858474a48f6aa7d5f94701b8b8",
+			"native_size": [
+				128,
+				128
+			],
+			"source_size": [
+				1774,
+				887
+			]
+		},
+		"torches": {
+			"assets": [
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						128
+					],
+					"path": "torches/torch_0.png",
+					"source_cell": 0,
+					"source_rect": [
+						0,
+						0,
+						444,
+						887
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						128
+					],
+					"path": "torches/torch_1.png",
+					"source_cell": 1,
+					"source_rect": [
+						444,
+						0,
+						443,
+						887
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						128
+					],
+					"path": "torches/torch_2.png",
+					"source_cell": 2,
+					"source_rect": [
+						887,
+						0,
+						444,
+						887
+					]
+				},
+				{
+					"canvas_offset_y": 0,
+					"native_size": [
+						64,
+						128
+					],
+					"path": "torches/torch_3.png",
+					"source_cell": 3,
+					"source_rect": [
+						1331,
+						0,
+						443,
+						887
+					]
+				}
+			],
+			"grid": [
+				4,
+				1
+			],
+			"master": "/workspace/generated_images/exec-4c3597a7-0f7e-456c-94b8-8f3ec17f3973.png",
+			"master_sha256": "ee560a0cf689e2969be21f2d7fb0da1c48e1d0befa005ec6ea11460e3c157361",
+			"native_size": [
+				64,
+				128
+			],
+			"source_size": [
+				1774,
+				887
+			]
+		}
+	},
+	"provenance": "Newly generated pixel-art forms/shading matched to the supplied image; no previous artwork was pixel-filtered.",
+	"reference": "User-provided EMBERCRYPT battle illustration",
+	"sampling": "Nearest; lossless PNG; no mipmaps. World stone uses a consistent world-space texel scale.",
+	"version": "0.4-reference-pilot"
+}
