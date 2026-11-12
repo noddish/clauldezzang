@@ -1,0 +1,22 @@
+Godot 4.6.3 / Linux / OpenGL Compatibility
+
+Rules: 29 checks, 0 failures.
+UI: 73 checks, 0 failures.
+Full walkthrough: key → door → combat → treasure, 100 gold, PASS.
+Captured actual game at 1280x760, 390x844 and 844x390.
+42 individual assets: expected native dimensions verified, mipmaps disabled.
+Native nearest texture sampling preserved for HUD and world sprites/materials.
+
+Compared with the previous v0.2 deliverable:
+dungeon_state.gd, main.gd and sound.gd are byte-identical.
+HUD changes only bind the new independent icon files; layout code is unchanged.
+World artwork, its asset adapter, material shading and local light settings changed.
+Enemy/item world sprite heights and existing animation timings were retained.
+
+previews/playthrough.mp4 records the verified full walkthrough.
+PREVIEW.html shows actual combat captures and individual portrait PNGs.
+Rendering uses a software desktop GPU in this environment.
+Physical Android/iPhone rendering and touch have not been tested.
+
+Preview HTML: all 9 images load; 320/390/768/1440px layouts fit;
+2x/3x portrait zoom gives exact 256/384px dimensions, no JavaScript errors.
