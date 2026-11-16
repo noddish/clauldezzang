@@ -1,4 +1,4 @@
-<title>루비네 집 탐험</title>
+<title>루비네 오두막 탐험</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
 <style>
@@ -60,8 +60,8 @@ h1 { font: 400 30px var(--f-display); margin: 0; }
 
 <div class="wrap">
   <header>
-    <h1>루비네 집 탐험</h1>
-    <p class="sub">서머타임 사가의 집 구조(내 방 → 2층 복도 → 1층 현관 → 부엌·거실)를 그대로 옮긴 플레이 데모입니다. 문, 계단, 침대, 냉장고처럼 밝아지는 물건과 루비를 클릭해 보세요. 퀘스트는 오른쪽 위에 나옵니다.</p>
+    <h1>루비네 오두막 탐험</h1>
+    <p class="sub">서머타임 사가의 집 구조(내 방 → 2층 복도 → 1층 현관 → 부엌·거실)를 판타지 오두막으로 옮긴 플레이 데모입니다. 문, 계단, 침대, 찬장처럼 밝아지는 물건과 루비를 클릭해 보세요. 퀘스트는 오른쪽 위에 나옵니다.</p>
   </header>
 
   <div class="stage" id="stage">
@@ -109,28 +109,28 @@ Location("hallway", "2층 복도", "home_hallway", "entrance");
 Location("bedroom", "내 방", "home_bedroom", "hallway");
 Location("kitchen", "부엌", "home_kitchen", "entrance");
 Location("livingroom", "거실", "home_livingroom", "entrance");
-Location("bathroom", "욕실", null, "hallway", true);
+Location("bathroom", "창고방", null, "hallway", true);
 Location("town", "마을", null, null, true);
 
 /* 오브젝트: [이름, 동작, 설명] — 좌표는 cut_objects.py 결과 */
 const POS = /*POS*/{};
 const SCREENS = {
   bedroom:   [["bedroom_door", "move:hallway", "2층 복도로"], ["bedroom_bed", "bed", "침대 (자기)"], ["bedroom_desk", "desk", "책상"]],
-  hallway:   [["hallway_mydoor", "move:bedroom", "내 방"], ["hallway_bath", "move:bathroom", "욕실"], ["hallway_stairs", "move:entrance", "1층으로 내려가기"]],
+  hallway:   [["hallway_mydoor", "move:bedroom", "내 방"], ["hallway_bath", "move:bathroom", "창고방"], ["hallway_stairs", "move:entrance", "1층으로 내려가기"]],
   entrance:  [["entrance_stairs", "move:hallway", "2층으로 올라가기"], ["entrance_door", "move:town", "밖으로 나가기"], ["entrance_kitchen", "move:kitchen", "부엌"], ["entrance_living", "move:livingroom", "거실"]],
-  kitchen:   [["kitchen_back", "move:entrance", "현관으로"], ["kitchen_fridge", "fridge", "냉장고"], ["kitchen_stove", "stove", "가스레인지"]],
-  livingroom:[["living_door", "move:entrance", "현관으로"], ["living_tv", "tv", "TV"], ["living_couch", "couch", "소파"]],
+  kitchen:   [["kitchen_back", "move:entrance", "현관으로"], ["kitchen_fridge", "fridge", "찬장"], ["kitchen_stove", "stove", "화덕"]],
+  livingroom:[["living_door", "move:entrance", "현관으로"], ["living_tv", "tv", "벽난로"], ["living_couch", "couch", "긴 의자"]],
 };
 const NPC_X = { kitchen: 58, livingroom: 70, hallway: 70 };   // 원작처럼 오른쪽에 서서 왼쪽(주인공)을 봄
 
 /* ===== characters/ruby/ruby_fsm.rpy ===== */
 const SCHEDULE = [["kitchen", null, "livingroom", null], ["livingroom", "kitchen", "livingroom", null]];
 const S = {
-  start:  "아래층 부엌에서 맛있는 냄새가 난다. 내려가 볼까?",
-  remote: "루비가 TV 리모컨을 잃어버렸다. 내 방 책상 근처에 있나?",
-  give:   "리모컨을 찾았다! 저녁에 거실에 있는 루비에게 돌려주자.",
-  movie:  "루비가 내일 저녁에 같이 영화 보자고 했다. (침대에서 자고 내일 저녁 거실로)",
-  night:  "저녁에 거실에서 루비와 영화 보기!",
+  start:  "아래층 부엌에서 스튜 냄새가 난다. 내려가 볼까?",
+  remote: "루비가 부싯돌을 잃어버렸다. 내 방 책상 근처에 있나?",
+  give:   "부싯돌을 찾았다! 저녁에 거실에 있는 루비에게 돌려주자.",
+  movie:  "루비가 내일 저녁 벽난로 앞에서 모험 이야기를 들려준대. (침대에서 자고 내일 저녁 거실로)",
+  night:  "저녁에 거실 벽난로 앞에서 루비의 이야기 듣기!",
   end:    "퀘스트 완료! 자유롭게 돌아다녀 보세요.",
 };
 const TABLE = { start: { T_ruby_breakfast: "remote" }, remote: { T_ruby_found: "give" }, give: { T_ruby_given: "movie" }, movie: { T_all_sleep: "night" }, night: { T_ruby_watched: "end" } };
@@ -204,7 +204,7 @@ function drawTree() {
 `L_home_entrance  ${mark("entrance", "1층 현관")}
  ├ L_home_hallway   ${mark("hallway", "2층 복도")}
  │  ├ L_home_bedroom  ${mark("bedroom", "내 방")}
- │  └ L_home_bathroom 욕실 (locked)
+ │  └ L_home_bathroom 창고방 (locked)
  ├ L_home_kitchen   ${mark("kitchen", "부엌")}
  └ L_home_livingroom ${mark("livingroom", "거실")}`;
   const cell = (d, t) => { const v = SCHEDULE[d][t]; const s = v ? L[v].name : "—"; const now = (timer.weekend() ? 1 : 0) === d && timer.tod === t; return (now ? `<span class="cur">${s}</span>` : s).padEnd(now ? 30 : 6, " "); };
@@ -224,10 +224,10 @@ async function run(act, name) {
   } finally { busy = false; $("say").hidden = true; draw(); }
 }
 async function lockCheck(origin, dest) {
-  if (dest === "town") { log("call home_lock_check(origin, L_town_map)", "lock check: 밖 → 막힘 (return True)"); await me("( 밖에 나가는 건 다음에 하자. 마을 지도는 다음 단계에서. )"); return true; }
+  if (dest === "town") { log("call home_lock_check(origin, L_town_map)", "lock check: 밖 → 막힘 (return True)"); await me("( 마을로 나가는 건 다음에 하자. 마을 지도는 다음 단계에서. )"); return true; }
   if (dest === "bathroom") {
     log("call home_lock_check(origin, L_home_bathroom)", "lock check: 욕실 → 막힘");
-    if (timer.tod === 0) { await sayLine("", "*쏴아아…*"); await sayLine("루비", "누구야! 나 씻는 중이야!"); }
+    if (timer.tod === 0) { await sayLine("", "*덜컹*"); await sayLine("루비", "거기 창고방이야! 함부로 열지 마!"); }
     else await me("( 지금은 볼일이 없다. )");
     return true;
   }
@@ -254,40 +254,40 @@ async function interact(act) {
     await me("( 아침이다. )"); return;
   }
   if (act === "desk") {
-    if (ruby.state === "remote") { await me("( 책상 밑에… 있다! TV 리모컨이다. )"); trigger("T_ruby_found"); }
-    else { await me("( 컴퓨터로 시간을 좀 때웠다. )"); tick(); }
+    if (ruby.state === "remote") { await me("( 책상 위 책 사이에… 있다! 루비의 부싯돌이다. )"); trigger("T_ruby_found"); }
+    else { await me("( 마법서를 좀 읽으며 시간을 보냈다. )"); tick(); }
     return;
   }
-  if (act === "fridge") return me("( 우유를 한 컵 마셨다. )");
-  if (act === "stove") return me(timer.tod === 0 && !timer.weekend() ? "( 팬케이크가 아직 따뜻하다. )" : "( 지금은 아무것도 없다. )");
-  if (act === "tv") return me(["start", "remote", "give"].includes(ruby.state) ? "( 리모컨이 없으면 채널을 못 돌린다… )" : "( 재미있는 게 없네. )");
-  if (act === "couch") { await me("( 소파에 잠깐 누워 있었다. )"); tick(); return; }
+  if (act === "fridge") return me("( 찬장에서 사과를 하나 꺼내 먹었다. )");
+  if (act === "stove") return me(timer.tod === 0 && !timer.weekend() ? "( 냄비 속 스튜가 아직 따뜻하다. )" : "( 지금은 아무것도 없다. )");
+  if (act === "tv") return me(["start", "remote", "give"].includes(ruby.state) ? "( 부싯돌이 없으면 불을 못 피운다… )" : "( 장작이 타닥타닥 탄다. )");
+  if (act === "couch") { await me("( 긴 의자에 잠깐 누워 있었다. )"); tick(); return; }
 }
 async function talkRuby() {
   if (busy) return; busy = true; $("tip").hidden = true;
   log("action TalkTo(M_ruby)  →  label ruby_button_dialogue", `대화 (현재 단계: S_ruby_${ruby.state})`);
   try {
     if (ruby.state === "start") {
-      await r("happy", "일어났어? 팬케이크 구웠으니까 먹어.");
-      await r("neutral", "아 맞다, 혹시 TV 리모컨 못 봤어? 어제부터 안 보이네.");
+      await r("happy", "일어났어? 스튜 끓여놨으니까 먹어.");
+      await r("neutral", "아 맞다, 혹시 내 부싯돌 못 봤어? 저녁에 벽난로 피워야 하는데.");
       await r(null, "네 방에 굴러들어간 거 아니야? 찾으면 좀 갖다줘.");
       trigger("T_ruby_breakfast");
     } else if (ruby.state === "give" && inv.has("remote")) {
-      await r("surprised", "어? 리모컨! 어디 있었어?");
+      await r("surprised", "어? 내 부싯돌! 어디 있었어?");
       setFace("happy"); $("npc").classList.remove("hop"); void $("npc").offsetWidth; $("npc").classList.add("hop");
-      await r("happy", "고마워! 그럼 내일 저녁에 같이 영화 보자. 팝콘은 내가 준비할게.");
+      await r("happy", "고마워! 내일 저녁엔 벽난로 앞에서 내가 던전 갔던 얘기 해줄게.");
       trigger("T_ruby_given");
     } else if (ruby.state === "night" && loc === "livingroom" && timer.tod === 2) {
-      await r("happy", "왔구나! 앉아, 시작한다.");
-      await fade(() => {}); await sayLine("", "( 둘이서 소파에 앉아 영화를 봤다. )");
-      await r("happy", "재밌었다! 또 보자.");
+      await r("happy", "왔구나! 앉아, 불 피웠어.");
+      await fade(() => {}); await sayLine("", "( 벽난로 앞에서 루비의 던전 모험담을 들었다. )");
+      await r("happy", "다음엔 너도 같이 가자. 장비부터 챙겨!");
       trigger("T_ruby_watched"); tick();
     } else {
       $("say").hidden = false; $("sayWho").textContent = "루비"; $("sayText").textContent = "응? 왜?";
       const opts = [["요즘 어때?", "how"]];
-      if (ruby.state === "remote") opts.push(["리모컨 말인데…", "remote"]);
+      if (ruby.state === "remote") opts.push(["부싯돌 말인데…", "remote"]);
       opts.push(["아무것도 아니야.", "no"]);
-      log("menu:\n    \"리모컨 말인데…\" if M_ruby.is_state(S_ruby_remote):", "조건부 선택지");
+      log("menu:\n    \"부싯돌 말인데…\" if M_ruby.is_state(S_ruby_remote):", "조건부 선택지");
       const v = await menu(opts);
       if (v === "how") await r("happy", "나야 늘 똑같지 뭐. 너는 학교 잘 다니고?");
       else if (v === "remote") await r("angry", "아직 못 찾았어? 네 방 책상 근처 잘 봐봐!");

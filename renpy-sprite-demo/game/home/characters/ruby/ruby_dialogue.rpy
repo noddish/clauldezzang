@@ -9,25 +9,25 @@ label ruby_button_dialogue:
     with dissolve
 
     if M_ruby.is_state(S_ruby_start):
-        r happy "일어났어? 팬케이크 구웠으니까 먹어."
-        r neutral "아 맞다, 혹시 TV 리모컨 못 봤어? 어제부터 안 보이네."
+        r happy "일어났어? 스튜 끓여놨으니까 먹어."
+        r neutral "아 맞다, 혹시 내 부싯돌 못 봤어? 저녁에 벽난로 피워야 하는데."
         r "네 방에 굴러들어간 거 아니야? 찾으면 좀 갖다줘."
         $ M_ruby.trigger("T_ruby_breakfast")
 
     elif M_ruby.is_state(S_ruby_give) and "remote" in game.inventory:
-        r surprised "어? 리모컨! 어디 있었어?"
+        r surprised "어? 내 부싯돌! 어디 있었어?"
         show ruby happy at ruby_right, double_hop
-        r happy "고마워! 그럼 내일 저녁에 같이 영화 보자. 팝콘은 내가 준비할게."
+        r happy "고마워! 내일 저녁엔 벽난로 앞에서 내가 던전 갔던 얘기 해줄게."
         $ M_ruby.trigger("T_ruby_given")
 
     elif M_ruby.is_state(S_ruby_night) and game.location == L_home_livingroom and game.timer.tod == 2:
-        r happy "왔구나! 앉아, 시작한다."
+        r happy "왔구나! 앉아, 불 피웠어."
         scene expression game.location.bg
         with fade
-        "( 둘이서 소파에 앉아 영화를 봤다. )"
+        "( 벽난로 앞에서 루비의 던전 모험담을 들었다. )"
         show ruby happy at ruby_right
         with dissolve
-        r "재밌었다! 또 보자."
+        r "다음엔 너도 같이 가자. 장비부터 챙겨!"
         $ M_ruby.trigger("T_ruby_watched")
         $ game.timer.tick()
 
@@ -36,7 +36,7 @@ label ruby_button_dialogue:
             r "응? 왜?"
             "요즘 어때?":
                 r happy "나야 늘 똑같지 뭐. 너는 학교 잘 다니고?"
-            "리모컨 말인데…" if M_ruby.is_state(S_ruby_remote):
+            "부싯돌 말인데…" if M_ruby.is_state(S_ruby_remote):
                 r angry "아직 못 찾았어? 네 방 책상 근처 잘 봐봐!"
             "아무것도 아니야.":
                 r neutral "싱겁기는."

@@ -73,7 +73,7 @@ screen home_bedroom():
 screen home_hallway():
     add game.location.bg
     use object_button("hallway_mydoor", MoveTo(L_home_bedroom), "내 방")
-    use object_button("hallway_bath", MoveTo(L_home_bathroom), "욕실")
+    use object_button("hallway_bath", MoveTo(L_home_bathroom), "창고방")
     use object_button("hallway_stairs", MoveTo(L_home_entrance), "1층으로 내려가기")
     if L_home_hallway.is_here(M_ruby):
         use npc_button(M_ruby, 0.7)
@@ -90,8 +90,8 @@ screen home_entrance():
 screen home_kitchen():
     add game.location.bg
     use object_button("kitchen_back", MoveTo(L_home_entrance), "현관으로")
-    use object_button("kitchen_fridge", Interact("home_fridge"), "냉장고")
-    use object_button("kitchen_stove", Interact("home_stove"), "가스레인지")
+    use object_button("kitchen_fridge", Interact("home_fridge"), "찬장")
+    use object_button("kitchen_stove", Interact("home_stove"), "화덕")
     if L_home_kitchen.is_here(M_ruby):
         use npc_button(M_ruby, 0.58)   # 냉장고를 가리지 않게
     use hud
@@ -99,8 +99,8 @@ screen home_kitchen():
 screen home_livingroom():
     add game.location.bg
     use object_button("living_door", MoveTo(L_home_entrance), "현관으로")
-    use object_button("living_tv", Interact("home_tv"), "TV")
-    use object_button("living_couch", Interact("home_couch"), "소파")
+    use object_button("living_tv", Interact("home_tv"), "벽난로")
+    use object_button("living_couch", Interact("home_couch"), "긴 의자")
     if L_home_livingroom.is_here(M_ruby):
         use npc_button(M_ruby, 0.7)
     use hud

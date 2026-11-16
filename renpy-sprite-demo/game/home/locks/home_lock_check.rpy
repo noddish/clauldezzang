@@ -12,14 +12,14 @@ label home_lock_check(origin, dest):
 
     ## 밖으로 나가기 — 이 데모는 집 안까지
     if dest is L_town_map:
-        me "( 밖에 나가는 건 다음에 하자. — 마을 지도는 다음 단계에서 )"
+        me "( 마을로 나가는 건 다음에 하자. — 마을 지도는 다음 단계에서 )"
         return True
 
     ## 욕실 — 아침엔 사용 중, 그 외엔 데모에 없음
     if dest is L_home_bathroom:
         if game.timer.tod == 0:
-            "{i}*쏴아아…*{/i}"
-            r "누구야! 나 씻는 중이야!"
+            "{i}*덜컹*{/i}"
+            r "거기 창고방이야! 함부로 열지 마!"
         else:
             me "( 지금은 볼일이 없다. )"
         return True

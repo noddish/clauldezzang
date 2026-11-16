@@ -43,33 +43,33 @@ label home_bed:
 
 label home_desk:
     if M_ruby.is_state(S_ruby_remote):
-        me "( 책상 밑에… 있다! TV 리모컨이다. )"
+        me "( 책상 위 책 사이에… 있다! 루비의 부싯돌이다. )"
         $ M_ruby.trigger("T_ruby_found")
     else:
-        me "( 컴퓨터로 시간을 좀 때웠다. )"
+        me "( 마법서를 좀 읽으며 시간을 보냈다. )"
         $ game.timer.tick()
     jump game_main
 
 label home_fridge:
-    me "( 우유를 한 컵 마셨다. )"
+    me "( 찬장에서 사과를 하나 꺼내 먹었다. )"
     jump game_main
 
 label home_stove:
     if game.timer.tod == 0 and game.timer.dow < 5:
-        me "( 팬케이크가 아직 따뜻하다. )"
+        me "( 냄비 속 스튜가 아직 따뜻하다. )"
     else:
         me "( 지금은 아무것도 없다. )"
     jump game_main
 
 label home_tv:
     if M_ruby.state in (S_ruby_start, S_ruby_remote, S_ruby_give):
-        me "( 리모컨이 없으면 채널을 못 돌린다… )"
+        me "( 부싯돌이 없으면 불을 못 피운다… )"
     else:
-        me "( 재미있는 게 없네. )"
+        me "( 장작이 타닥타닥 탄다. )"
     jump game_main
 
 label home_couch:
-    me "( 소파에 잠깐 누워 있었다. )"
+    me "( 긴 의자에 잠깐 누워 있었다. )"
     $ game.timer.tick()
     jump game_main
 

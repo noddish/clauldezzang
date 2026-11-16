@@ -25,11 +25,22 @@ init -5 python:
 ## ----------------------------------------------------------------- 오브젝트 위치
 ## tools/cut_objects.py 가 배경에서 오려낸 조각의 왼쪽 위 좌표 (objects_pos.json 과 같음)
 define OBJ_POS = {
-    "bedroom_door": (1100, 0), "bedroom_bed": (0, 250), "bedroom_desk": (635, 225),
-    "hallway_mydoor": (210, 0), "hallway_bath": (1035, 0), "hallway_stairs": (535, 270),
-    "entrance_stairs": (175, 5), "entrance_door": (612, 85), "entrance_kitchen": (985, 25), "entrance_living": (0, 40),
-    "kitchen_back": (30, 30), "kitchen_fridge": (1110, 0), "kitchen_stove": (935, 290),
-    "living_door": (1125, 40), "living_couch": (300, 200), "living_tv": (0, 120),
+    "bedroom_door": (1110, 0),
+    "bedroom_bed": (0, 250),
+    "bedroom_desk": (635, 260),
+    "hallway_mydoor": (225, 20),
+    "hallway_bath": (1045, 20),
+    "hallway_stairs": (530, 300),
+    "entrance_stairs": (175, 0),
+    "entrance_door": (625, 105),
+    "entrance_kitchen": (1010, 50),
+    "entrance_living": (0, 40),
+    "kitchen_back": (35, 40),
+    "kitchen_fridge": (1130, 0),
+    "kitchen_stove": (955, 230),
+    "living_door": (1120, 40),
+    "living_couch": (330, 250),
+    "living_tv": (0, 170),
 }
 
 init python:
