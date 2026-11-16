@@ -25,7 +25,10 @@ def canvas():
 
 def save(img, name, folder=OUT):
     os.makedirs(folder, exist_ok=True)
-    img.save(os.path.join(folder, name + ".png"))
+    path = os.path.join(folder, name + ".png")
+    if folder != OUT and os.path.exists(path):
+        return                       # 적 그림은 AI 그림으로 교체됨 → 덮어쓰지 않음
+    img.save(path)
 
 
 # ---------------------------------------------------------------- body (몸 + 머리 + 머리카락)
@@ -182,7 +185,9 @@ def town(name, night=False):
         d.rectangle((x + w - 60, 480 - h + 30, x + w - 20, 480 - h + 70), fill=win, outline=LINE, width=3)
     if night:
         d.ellipse((1100, 50, 1170, 120), fill=(250, 245, 210))
-    os.makedirs(OUT_BG, exist_ok=True); im.save(os.path.join(OUT_BG, name + ".jpg"), quality=90)
+    os.makedirs(OUT_BG, exist_ok=True)
+    if not os.path.exists(os.path.join(OUT_BG, name + ".jpg")):   # AI 배경이 있으면 유지
+        im.save(os.path.join(OUT_BG, name + ".jpg"), quality=90)
 
 
 def field():
@@ -192,7 +197,9 @@ def field():
     d.rectangle((0, 420, 1280, 720), fill=(120, 175, 95))
     for i in range(0, 1280, 160):
         d.ellipse((i + 20, 600, i + 140, 640), fill=(100, 155, 80))
-    os.makedirs(OUT_BG, exist_ok=True); im.save(os.path.join(OUT_BG, "bg_field.jpg"), quality=90)
+    os.makedirs(OUT_BG, exist_ok=True)
+    if not os.path.exists(os.path.join(OUT_BG, "bg_field.jpg")):
+        im.save(os.path.join(OUT_BG, "bg_field.jpg"), quality=90)
 
 
 town("bg_town_day"); town("bg_town_night", night=True); field()

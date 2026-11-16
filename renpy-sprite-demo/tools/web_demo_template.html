@@ -1,4 +1,4 @@
-<title>레온 스프라이트 데모</title>
+<title>루비 스프라이트 데모</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,7 +50,7 @@ header h1 { font-family: var(--f-display); font-weight: 400; font-size: 34px; ma
 header p { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
 .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
 .tab { font: 600 15px var(--f-body); padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
-.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.tab[aria-selected="true"], .tab[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px; align-items: start; }
 @media (max-width: 900px) { .main { grid-template-columns: minmax(0, 1fr); } }
 
@@ -152,9 +152,13 @@ header p { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
 <div class="wrap">
   <header>
     <h1>조립형 캐릭터 + 모션 데모</h1>
-    <p>그림 20장(몸·팔·눈썹·눈·입·덧씌우기)을 겹쳐 캐릭터 한 명을 만들고, 움직임은 그림 추가 없이 코드로 만듭니다. 버튼을 누르면 같은 동작의 Ren'Py 코드가 아래에 나옵니다.</p>
+    <p>캐릭터는 그림 조각을 겹쳐 만들고, 움직임은 그림을 더 그리지 않고 코드로 만듭니다. 버튼을 누르면 같은 동작의 Ren'Py 코드가 무대 아래에 나옵니다.</p>
   </header>
 
+  <div class="tabs" aria-label="캐릭터">
+    <button class="tab" id="char-ruby" aria-pressed="true">루비 · AI 카툰 그림 (몸 1장 + 얼굴 6장)</button>
+    <button class="tab" id="char-leon" aria-pressed="false">레온 · 부위별 조각 예제 (20장)</button>
+  </div>
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="tab-pose" aria-selected="true">표정 · 포즈 · 모션</button>
     <button class="tab" role="tab" id="tab-battle" aria-selected="false">미니 턴제 전투</button>
@@ -169,8 +173,8 @@ header p { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
         </div>
         <div class="enemy" id="enemy" hidden><div class="anim" id="enemyAnim"><img id="enemyImg" alt="슬라임"></div></div>
         <div class="layer-tags" id="layerTags"></div>
-        <div class="say" id="say" hidden><b>레온</b><span id="sayText"></span></div>
-        <div class="hpbox l" id="hpHero" hidden>레온 <span id="hpHeroTxt"></span><div class="hpbar"><i id="hpHeroBar"></i></div></div>
+        <div class="say" id="say" hidden><b id="sayName">루비</b><span id="sayText"></span></div>
+        <div class="hpbox l" id="hpHero" hidden><span id="hpHeroName">루비</span> <span id="hpHeroTxt"></span><div class="hpbar"><i id="hpHeroBar"></i></div></div>
         <div class="hpbox r" id="hpEnemy" hidden>슬라임 <span id="hpEnemyTxt"></span><div class="hpbar"><i id="hpEnemyBar"></i></div></div>
       </div>
       <div class="codebox" aria-live="polite">
@@ -184,12 +188,15 @@ header p { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
         <h3>표정 프리셋</h3>
         <div class="chips" id="presets"></div>
       </div>
+      <div class="group" id="rubyFaceGroup"><h3>얼굴 <code>face</code> · 표정 1개 = 얼굴 그림 1장</h3><div class="chips" id="rubyFaces"></div></div>
+      <div id="leonGroups" style="display:grid; gap:14px">
       <div class="group"><h3>몸 · 옷 <code>body</code></h3><div class="chips" data-group="body"></div></div>
       <div class="group"><h3>팔 <code>arms</code></h3><div class="chips" data-group="arms"></div></div>
       <div class="group"><h3>눈썹 <code>brows</code></h3><div class="chips" data-group="brows"></div></div>
       <div class="group"><h3>눈 <code>eyes</code></h3><div class="chips" data-group="eyes"></div></div>
       <div class="group"><h3>입 <code>mouth</code></h3><div class="chips" data-group="mouth"></div></div>
       <div class="group"><h3>덧씌우기 <code>overlay</code> · 여러 개 가능</h3><div class="chips" data-group="overlay"></div></div>
+      </div>
       <div class="group">
         <h3>한 번 움직이기 (ATL)</h3>
         <div class="chips" id="motions"></div>
@@ -228,7 +235,7 @@ header p { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
 
   <div class="panel">
     <div class="group">
-      <h3>실제 파일 — 전부 600×720 투명 캔버스 <code>game/images/hero/</code></h3>
+      <h3 id="filesTitle"></h3>
       <div class="files" id="files"></div>
     </div>
   </div>
@@ -237,6 +244,35 @@ header p { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
 <script>
 const A = /*ASSETS*/{};
 const $ = (id) => document.getElementById(id);
+
+/* ---------------- 캐릭터 ---------------- */
+const BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+let cur = "ruby";
+const TAG = () => cur === "ruby" ? "ruby" : "hero";
+const NAME = () => cur === "ruby" ? "루비" : "레온";
+// 루비는 얼굴 통짜 그림이라, 레온식 조각 상태(눈썹/눈/입)를 얼굴 1장으로 바꿔 보여준다
+function rubyFaceOf(tokens) {
+  if (tokens.includes("closed_eyes")) return "closed";
+  if (tokens.includes("happy_eyes") || tokens.includes("smile")) return "happy";
+  if (tokens.includes("angry_brows")) return "angry";
+  if (tokens.includes("sad_brows")) return "sad";
+  if (tokens.includes("wide_eyes") || tokens.includes("up_brows") || tokens.includes("open")) return "surprised";
+  return "neutral";
+}
+const rubyFace = () => rubyFaceOf([state.brows, state.eyes, state.mouth]);
+const RUBY_FACES = { neutral: ["기본 (자동 깜빡임)", ["normal_brows", "blink", "neutral"]], happy: ["기쁨", ["normal_brows", "happy_eyes", "smile"]],
+  angry: ["화남", ["angry_brows", "blink", "frown"]], sad: ["슬픔", ["sad_brows", "blink", "frown"]],
+  surprised: ["놀람", ["up_brows", "wide_eyes", "open"]], closed: ["눈 감음", ["normal_brows", "closed_eyes", "neutral"]] };
+function translateCode(src) {
+  if (cur !== "ruby") return src;
+  return src.replace(/show hero((?: (?!at\b)[-\w]+)*)/g, (m, attrs) => {
+    const toks = attrs.trim().split(/\s+/).filter(Boolean);
+    if (!toks.length) return "show ruby";
+    return "show ruby " + rubyFaceOf(toks);
+  }).replace('Character("레온", image="hero")', 'Character("루비", image="ruby")').replace(/레온/g, "루비")
+    .replace(/group mouth if_not \["speaking"\]:/, 'group face if_not ["speaking"]:').replace('attribute speaking "hero_mouth_flap"', 'attribute speaking "ruby_face_flap"')
+    .replace(/image hero_mouth_flap:\n    "hero_mouth_talk_a"\n    pause 0.12\n    "hero_mouth_neutral"\n    pause 0.10/, 'image ruby_face_flap:\n    "ruby_face_talk"\n    pause 0.13\n    Null()\n    pause 0.11');
+}
 
 /* ---------------- 데이터: sprites.rpy 의 layeredimage 와 같은 구조 ---------------- */
 const GROUPS = {
@@ -294,10 +330,14 @@ function hl(src) {
     return body + (cm ? '<span class="cm">' + esc(cm) + "</span>" : "");
   }).join("\n");
 }
-function showCode(src) { $("code").innerHTML = hl(src); }
+function showCode(src) { $("code").innerHTML = hl(translateCode(src)); }
 
 /* ---------------- 렌더 ---------------- */
 function activeLayers() {
+  if (cur === "ruby") {
+    const f = rubyFace();
+    return [["body", "base", "ruby_body_base"], state.talking ? ["talking", "speaking", null] : ["face", f, f === "neutral" ? null : "ruby_face_" + (f === "closed" ? "blink" : f)]];
+  }
   const out = [];
   for (const [g, def] of Object.entries(GROUPS)) {
     if (g === "overlay") { for (const o of state.overlay) out.push([g, o, def.items[o]]); continue; }
@@ -313,8 +353,9 @@ function render() {
   layers.forEach(([g, attr, name], i) => {
     const img = document.createElement("img");
     img.alt = ""; img.dataset.group = g;
-    if (g === "talking") { img.id = "mouthFlap"; img.src = A.hero_mouth_talk_a; }
+    if (g === "talking") { img.id = "mouthFlap"; img.src = cur === "ruby" ? A.ruby_face_talk : A.hero_mouth_talk_a; }
     else if (g === "eyes" && attr === "blink") { img.id = "blinkEyes"; img.src = A.hero_eyes_open; }
+    else if (g === "face" && attr === "neutral") { img.id = "blinkEyes"; img.src = BLANK; }
     else img.src = A[name];
     if (exploded) {
       const n = layers.length, off = (i - (n - 1) / 2) * 30;
@@ -324,6 +365,7 @@ function render() {
   });
   const tags = $("layerTags"); tags.innerHTML = "";
   if (exploded) layers.forEach(([g, attr]) => { const s = document.createElement("span"); s.textContent = g === "talking" ? "speaking" : g; tags.appendChild(s); });
+  document.querySelectorAll("#rubyFaces .chip").forEach(b => b.setAttribute("aria-pressed", String(rubyFace() === b.dataset.f)));
   document.querySelectorAll(".chips[data-group] .chip").forEach(b => {
     const g = b.dataset.g, a = b.dataset.a;
     b.setAttribute("aria-pressed", g === "overlay" ? String(state.overlay.has(a)) : String(state[g] === a));
@@ -333,7 +375,7 @@ function scheduleBlink() {
   clearTimeout(blinkTimer);
   blinkTimer = setTimeout(() => {
     const e = $("blinkEyes");
-    if (e) { e.src = A.hero_eyes_closed; setTimeout(() => { const e2 = $("blinkEyes"); if (e2) e2.src = A.hero_eyes_open; }, 120); }
+    if (e) { e.src = cur === "ruby" ? A.ruby_face_blink : A.hero_eyes_closed; setTimeout(() => { const e2 = $("blinkEyes"); if (e2) e2.src = cur === "ruby" ? BLANK : A.hero_eyes_open; }, 120); }
     scheduleBlink();
   }, [2500, 3500, 5000][Math.floor(Math.random() * 3)]);
 }
@@ -419,6 +461,11 @@ for (const [k, [label, src]] of Object.entries(TOGGLES)) {
 function restartStage(cls) { const s = $("stage"); s.classList.remove("shake", "hshake"); void s.offsetWidth; s.classList.add(cls); }
 
 /* ---------------- 대사 + 입 움직임 ---------------- */
+const LINES_RUBY = [
+  "안녕! 나는 AI로 그린 몸 1장에 얼굴 6장을 겹쳐 만든 루비야.",
+  "말하는 동안에는 입 벌린 얼굴과 기본 얼굴이 번갈아 나와서 입이 움직여 보여.",
+  "가만히 있으면 가끔 눈도 깜빡여. 이것도 얼굴 그림 한 장이야.",
+];
 const LINES = [
   "안녕! 나는 조각 20장으로 만들어진 레온이야.",
   "대사가 나오는 동안에는 입이 저절로 움직여. config.speaking_attribute 덕분이지.",
@@ -426,12 +473,12 @@ const LINES = [
 ];
 let lineIdx = 0, typing = null;
 $("btnTalk").addEventListener("click", () => {
-  const text = LINES[lineIdx++ % LINES.length];
+  const L = cur === "ruby" ? LINES_RUBY : LINES; const text = L[lineIdx++ % L.length];
   const say = $("say"), out = $("sayText");
   say.hidden = false; out.textContent = ""; clearInterval(typing); clearInterval(flapTimer);
   state.talking = true; render();
   let open = true;
-  flapTimer = setInterval(() => { const m = $("mouthFlap"); if (m) { open = !open; m.src = open ? A.hero_mouth_talk_a : A.hero_mouth_neutral; } }, 115);
+  flapTimer = setInterval(() => { const m = $("mouthFlap"); if (m) { open = !open; m.src = open ? (cur === "ruby" ? A.ruby_face_talk : A.hero_mouth_talk_a) : (cur === "ruby" ? BLANK : A.hero_mouth_neutral); } }, 120);
   let i = 0;
   typing = setInterval(() => {
     out.textContent = text.slice(0, ++i);
@@ -454,11 +501,38 @@ $("btnNight").addEventListener("click", (e) => {
 });
 
 /* ---------------- 파일 목록 ---------------- */
-Object.keys(A).filter(k => k.startsWith("hero_")).forEach(k => {
-  const d = document.createElement("div"); d.className = "file";
-  d.innerHTML = `<img alt="${k}" src="${A[k]}"><span>${k}.png</span>`;
-  $("files").appendChild(d);
-});
+function renderFiles() {
+  $("files").innerHTML = "";
+  $("filesTitle").innerHTML = cur === "ruby"
+    ? '실제 파일 — 몸 1장 + 얼굴 6장, 전부 480×720 투명 캔버스 <code>game/images/ruby/</code>'
+    : '실제 파일 — 전부 600×720 투명 캔버스 <code>game/images/hero/</code>';
+  Object.keys(A).filter(k => k.startsWith(cur === "ruby" ? "ruby_" : "hero_")).forEach(k => {
+    const d = document.createElement("div"); d.className = "file";
+    d.innerHTML = `<img alt="${k}" src="${A[k]}" style="aspect-ratio:${cur === "ruby" ? "480/720" : "600/720"}"><span>${k}.png</span>`;
+    $("files").appendChild(d);
+  });
+}
+for (const [f, [label, attrs]] of Object.entries(RUBY_FACES)) {
+  const b = document.createElement("button");
+  b.className = "chip"; b.textContent = `${label} · ${f}`; b.dataset.f = f;
+  b.addEventListener("click", () => {
+    [state.brows, state.eyes, state.mouth] = attrs; render();
+    showCode(`# 얼굴 그룹에서 하나만 보임 — 몸은 그대로, 얼굴 조각만 교체\nshow ruby ${f}\n\n# ruby.rpy\nlayeredimage ruby:\n    always "ruby_body_base"\n    group face if_not ["speaking"]:\n        attribute neutral default "ruby_face_neutral_blink"\n        attribute happy "ruby_face_happy"\n        ...`);
+  });
+  $("rubyFaces").appendChild(b);
+}
+function setChar(c) {
+  cur = c;
+  $("char-ruby").setAttribute("aria-pressed", String(c === "ruby"));
+  $("char-leon").setAttribute("aria-pressed", String(c === "leon"));
+  $("rubyFaceGroup").hidden = c !== "ruby"; $("leonGroups").hidden = c === "ruby";
+  $("heroPos").style.aspectRatio = c === "ruby" ? "480 / 720" : "600 / 720";
+  $("heroPos").style.height = c === "ruby" ? "94%" : "100%";
+  $("sayName").textContent = NAME(); $("hpHeroName").textContent = NAME();
+  renderFiles(); setMode(mode);
+}
+$("char-ruby").addEventListener("click", () => setChar("ruby"));
+$("char-leon").addEventListener("click", () => setChar("leon"));
 
 /* ---------------- 탭 ---------------- */
 let mode = "pose";
@@ -471,7 +545,7 @@ function setMode(m) {
   $("say").hidden = true; exploded = false; $("stage").classList.remove("exploded"); $("btnExplode").setAttribute("aria-pressed", "false");
   $("heroPos").className = "pos " + (m === "battle" ? "left" : "center");
   if (m === "battle") {
-    $("bg").src = A.bg_field; state.body = "armor"; state.arms = "a_sword";
+    $("bg").src = A.bg_field; if (cur === "leon") { state.body = "armor"; state.arms = "a_sword"; }
     toggles.flip = toggles.droop = toggles.closeup = toggles.silhouette = false; toggles.breathing = true;
     resetBattle();
   } else {
@@ -500,7 +574,7 @@ function hp() {
 function log(t) { const p = document.createElement("div"); p.textContent = t; $("log").prepend(p); }
 function pop(text, x, color) { const d = document.createElement("div"); d.className = "dmg"; d.textContent = text; d.style.left = x; d.style.color = color || "#fff"; $("stage").appendChild(d); setTimeout(() => d.remove(), 1200); }
 function resetBattle() {
-  hero = new Fighter("레온", 30, 9, 2); enemy = new Fighter("슬라임", 28, 7, 1); busy = false;
+  hero = new Fighter(NAME(), 30, 9, 2); enemy = new Fighter("슬라임", 28, 7, 1); busy = false;
   $("enemyImg").src = A.slime; $("enemy").style.opacity = 1; restart($("enemyAnim"), "enemy_idle");
   $("log").innerHTML = ""; document.querySelectorAll(".banner").forEach(b => b.remove());
   neutralFace(); render(); hp(); log("야생의 슬라임이 나타났다!");
@@ -515,16 +589,16 @@ async function turn(cmd) {
     restart($("anim"), "attack_lunge", { "--lunge": "60%" });
     await wait(160);
     const d = enemy.take(hero.atk + rnd(3));
-    $("enemyImg").src = A.slime_hurt; restart($("enemyAnim"), "hit_flash"); pop(d, "75%"); log(`레온의 공격! 슬라임에게 ${d} 피해`);
+    $("enemyImg").src = A.slime_hurt; restart($("enemyAnim"), "hit_flash"); pop(d, "75%"); log(`${NAME()}의 공격! 슬라임에게 ${d} 피해`);
     hp(); await wait(520); $("enemyImg").src = A.slime; restart($("enemyAnim"), "enemy_idle");
     code = 'show hero angry_brows frown at stage_left, attack_lunge(220)\n$ dmg = enemy_f.take(hero_f.atk + renpy.random.randint(0, 3))\nshow slime_hurt as slime at stage_right, hit_flash\nshow screen damage_number(dmg, 0.75)';
   } else if (cmd === "guard") {
-    hero.guarding = true; face("sad_brows", "blink", "neutral"); restart($("anim"), "defend_pose"); log("레온은 방어 자세를 취했다.");
+    hero.guarding = true; face("sad_brows", "blink", "neutral"); restart($("anim"), "defend_pose"); log(`${NAME()}은(는) 방어 자세를 취했다.`);
     await wait(350);
     code = "$ hero_f.guarding = True      # 이번 턴 받는 피해 절반\nshow hero sad_brows blink neutral at stage_left, defend_pose";
   } else {
     const h = Math.min(8, hero.max - hero.hp); hero.hp += h; face("normal_brows", "happy_eyes", "smile"); restart($("anim"), "heal_glow");
-    pop("+" + h, "25%", "#7dff7d"); log(`레온은 HP를 ${h} 회복했다.`); hp(); await wait(600);
+    pop("+" + h, "25%", "#7dff7d"); log(`${NAME()}은(는) HP를 ${h} 회복했다.`); hp(); await wait(600);
     code = '$ hero_f.hp = min(hero_f.max_hp, hero_f.hp + 8)\nshow hero happy_eyes smile at stage_left, heal_glow\nshow screen damage_number("+8", 0.25, "#7dff7d")';
   }
   if (!enemy.alive) {
@@ -536,7 +610,7 @@ async function turn(cmd) {
   restart($("enemyAnim"), "attack_lunge", { "--lunge": "-70%" }); await wait(160);
   const d = hero.take(enemy.atk + rnd(3));
   face("up_brows", "wide_eyes", "open"); restart($("anim"), "hit_flash"); restartStage("hshake");
-  pop(d, "25%", "#ff8080"); log(`슬라임의 몸통 박치기! 레온에게 ${d} 피해${hero.guarding ? " (방어로 절반)" : ""}`); hp();
+  pop(d, "25%", "#ff8080"); log(`슬라임의 몸통 박치기! ${NAME()}에게 ${d} 피해${hero.guarding ? " (방어로 절반)" : ""}`); hp();
   await wait(550); restart($("enemyAnim"), "enemy_idle");
   if (!hero.alive) { face("sad_brows", "closed_eyes", "frown"); toggles.droop = true; applyToggles(); banner("패배…"); busy = false; return; }
   face("normal_brows", "blink", "neutral");
@@ -549,6 +623,7 @@ $("btnReset").addEventListener("click", () => { toggles.droop = false; applyTogg
 
 /* ---------------- 시작 ---------------- */
 $("bg").src = A.bg_town_day;
+$("heroPos").style.aspectRatio = "480 / 720"; $("heroPos").style.height = "94%"; $("leonGroups").hidden = true; renderFiles();
 render(); applyToggles(); scheduleBlink();
 showCode("# 데모 시작 — 오른쪽에서 걸어 들어오기\nscene bg_town_day\nshow hero at stage_center, slide_in_right");
 restart($("anim"), "slide_in_right");

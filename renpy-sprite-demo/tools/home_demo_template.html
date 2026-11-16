@@ -1,0 +1,311 @@
+<title>루비네 집 탐험</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* 한 화면짜리 게임: 16:9 무대 + 아래에 "지금 실행된 구조" 설명 */
+:root {
+  --bg: #e9ecf3; --panel: #ffffff; --ink: #1d2030; --muted: #5d6378; --line: #d6dae5; --accent: #3a64d8;
+  --hud: rgba(12, 14, 24, .78); --hud-ink: #ffffff; --quest: #ffd38a; --loc: #bcd7ff;
+  --code-bg: #171a26; --code-ink: #e6e9f2; --code-cm: #7d8499;
+  --f-display: "Do Hyeon", "IBM Plex Sans KR", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans KR", system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #11131b; --panel: #1a1d29; --ink: #e8eaf2; --muted: #9aa1b8; --line: #2c3142; --accent: #7c9bff; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #11131b; --panel: #1a1d29; --ink: #e8eaf2; --muted: #9aa1b8; --line: #2c3142; --accent: #7c9bff; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 32px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 14px; }
+h1 { font: 400 30px var(--f-display); margin: 0; }
+.sub { color: var(--muted); margin: 2px 0 0; font-size: 14px; max-width: 75ch; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: #000; container-type: inline-size; user-select: none; }
+.stage img { position: absolute; display: block; }
+.bg { inset: 0; width: 100%; height: 100%; }
+.obj { cursor: pointer; transition: filter .12s; }
+.obj:hover, .obj:focus-visible { filter: brightness(1.3) drop-shadow(0 0 .7cqw rgba(255,240,150,1)); outline: none; }
+.npc { position: absolute; bottom: 0; height: 92%; aspect-ratio: 480 / 720; transform: translateX(-50%); cursor: pointer; }
+.npc img { inset: 0; width: 100%; height: 100%; }
+.npc:hover { filter: brightness(1.12) drop-shadow(0 0 .6cqw rgba(255,255,200,.9)); }
+.hud { position: absolute; top: 1.4%; background: var(--hud); color: var(--hud-ink); border-radius: 8px; padding: .8cqw 1.4cqw; font-size: clamp(10px, 1.6cqw, 18px); z-index: 5; }
+.hud.l { left: 1%; } .hud.r { right: 1%; max-width: 44%; }
+.hud b { font: 400 1.25em var(--f-display); display: block; }
+.hud .loc { color: var(--loc); } .hud .q { color: var(--quest); font-size: .85em; }
+.btn { position: absolute; right: 1%; bottom: 2%; z-index: 5; font: 600 clamp(10px, 1.5cqw, 16px) var(--f-body); background: var(--hud); color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; padding: .6cqw 1.2cqw; cursor: pointer; }
+.btn:disabled { opacity: .4; cursor: default; }
+.tip { position: absolute; left: 50%; bottom: 2.5%; transform: translateX(-50%); background: rgba(0,0,0,.75); color: #fff; padding: .5cqw 1.4cqw; border-radius: 8px; font-size: clamp(11px, 1.8cqw, 20px); z-index: 5; pointer-events: none; }
+.say { position: absolute; left: 3%; right: 3%; bottom: 3%; min-height: 22%; background: rgba(12,14,24,.86); color: #fff; border-radius: 10px; padding: 1.4cqw 2cqw; font-size: clamp(12px, 2cqw, 22px); z-index: 8; cursor: pointer; }
+.say b { font: 400 1.15em var(--f-display); display: block; color: #7fe0c8; }
+.say b.me { color: #ffffff; }
+.say .next { position: absolute; right: 1.5cqw; bottom: 1cqw; font-size: .7em; opacity: .7; }
+.choices { position: absolute; inset: 0; display: grid; place-content: center; gap: 1cqw; z-index: 9; background: rgba(0,0,0,.25); }
+.choices button { font: 600 clamp(12px, 2cqw, 22px) var(--f-body); min-width: 40cqw; padding: 1cqw 2cqw; border-radius: 10px; border: 2px solid rgba(255,255,255,.6); background: rgba(20,24,40,.9); color: #fff; cursor: pointer; }
+.choices button:hover, .choices button:focus-visible { background: var(--accent); outline: none; }
+.fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .45s; z-index: 10; }
+.fade.on { opacity: 1; }
+.hop { animation: hop .22s ease-out 2; }
+@keyframes hop { 50% { transform: translate(-50%, -4%); } }
+.enter { animation: fadein .3s ease; }
+@keyframes fadein { from { opacity: 0 } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+@media (max-width: 820px) { .row { grid-template-columns: minmax(0, 1fr); } }
+.panel h2 { margin: 0; font: 700 12px var(--f-body); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+.tree { font: 13px/1.7 var(--f-mono); white-space: pre; overflow-x: auto; margin: 0; }
+.tree .cur { background: var(--accent); color: #fff; border-radius: 4px; padding: 0 4px; }
+.log { font: 12.5px/1.6 var(--f-mono); background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: 10px 12px; max-height: 210px; overflow: auto; margin: 0; white-space: pre-wrap; }
+.log .cm { color: var(--code-cm); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>루비네 집 탐험</h1>
+    <p class="sub">서머타임 사가의 집 구조(내 방 → 2층 복도 → 1층 현관 → 부엌·거실)를 그대로 옮긴 플레이 데모입니다. 문, 계단, 침대, 냉장고처럼 밝아지는 물건과 루비를 클릭해 보세요. 퀘스트는 오른쪽 위에 나옵니다.</p>
+  </header>
+
+  <div class="stage" id="stage">
+    <img class="bg" id="bg" alt="">
+    <div id="objs"></div>
+    <div class="npc" id="npc" hidden><img id="npcBody" alt="루비"><img id="npcFace" alt=""></div>
+    <div class="hud l"><b id="hudTime"></b><span class="loc" id="hudLoc"></span></div>
+    <div class="hud r"><span class="q">퀘스트</span><div id="hudQuest"></div></div>
+    <button class="btn" id="btnWait">시간 보내기</button>
+    <div class="tip" id="tip" hidden></div>
+    <div class="say" id="say" hidden><b id="sayWho"></b><span id="sayText"></span><span class="next">클릭 ▶</span></div>
+    <div class="choices" id="choices" hidden></div>
+    <div class="fade" id="fade"></div>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <h2>장소 트리 (Location) — 지금 위치</h2>
+      <pre class="tree" id="tree"></pre>
+      <h2>루비 위치표 (Machine.schedule)</h2>
+      <pre class="tree" id="sched"></pre>
+    </div>
+    <div class="panel">
+      <h2>방금 일어난 일 → Ren'Py 코드</h2>
+      <pre class="log" id="log"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+const A = /*ASSETS*/{};
+const $ = (id) => document.getElementById(id);
+const BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+/* ===== core/systems.rpy 와 같은 구조 ===== */
+const TODS = ["아침", "오후", "저녁", "밤"], DOWS = ["월", "화", "수", "목", "금", "토", "일"];
+const timer = { day: 0, tod: 0,
+  get dow() { return this.day % 7; }, dark() { return this.tod >= 2; }, weekend() { return this.dow >= 5; },
+  label() { return `${this.day + 1}일차 ${DOWS[this.dow]}요일 ${TODS[this.tod]}`; } };
+
+const L = {};
+function Location(id, name, bg, parent, locked) { L[id] = { id, name, bg, parent, locked }; }
+Location("entrance", "1층 현관", "home_entrance");
+Location("hallway", "2층 복도", "home_hallway", "entrance");
+Location("bedroom", "내 방", "home_bedroom", "hallway");
+Location("kitchen", "부엌", "home_kitchen", "entrance");
+Location("livingroom", "거실", "home_livingroom", "entrance");
+Location("bathroom", "욕실", null, "hallway", true);
+Location("town", "마을", null, null, true);
+
+/* 오브젝트: [이름, 동작, 설명] — 좌표는 cut_objects.py 결과 */
+const POS = /*POS*/{};
+const SCREENS = {
+  bedroom:   [["bedroom_door", "move:hallway", "2층 복도로"], ["bedroom_bed", "bed", "침대 (자기)"], ["bedroom_desk", "desk", "책상"]],
+  hallway:   [["hallway_mydoor", "move:bedroom", "내 방"], ["hallway_bath", "move:bathroom", "욕실"], ["hallway_stairs", "move:entrance", "1층으로 내려가기"]],
+  entrance:  [["entrance_stairs", "move:hallway", "2층으로 올라가기"], ["entrance_door", "move:town", "밖으로 나가기"], ["entrance_kitchen", "move:kitchen", "부엌"], ["entrance_living", "move:livingroom", "거실"]],
+  kitchen:   [["kitchen_back", "move:entrance", "현관으로"], ["kitchen_fridge", "fridge", "냉장고"], ["kitchen_stove", "stove", "가스레인지"]],
+  livingroom:[["living_door", "move:entrance", "현관으로"], ["living_tv", "tv", "TV"], ["living_couch", "couch", "소파"]],
+};
+const NPC_X = { kitchen: 56, livingroom: 50, hallway: 62 };
+
+/* ===== characters/ruby/ruby_fsm.rpy ===== */
+const SCHEDULE = [["kitchen", null, "livingroom", null], ["livingroom", "kitchen", "livingroom", null]];
+const S = {
+  start:  "아래층 부엌에서 맛있는 냄새가 난다. 내려가 볼까?",
+  remote: "루비가 TV 리모컨을 잃어버렸다. 내 방 책상 근처에 있나?",
+  give:   "리모컨을 찾았다! 저녁에 거실에 있는 루비에게 돌려주자.",
+  movie:  "루비가 내일 저녁에 같이 영화 보자고 했다. (침대에서 자고 내일 저녁 거실로)",
+  night:  "저녁에 거실에서 루비와 영화 보기!",
+  end:    "퀘스트 완료! 자유롭게 돌아다녀 보세요.",
+};
+const TABLE = { start: { T_ruby_breakfast: "remote" }, remote: { T_ruby_found: "give" }, give: { T_ruby_given: "movie" }, movie: { T_all_sleep: "night" }, night: { T_ruby_watched: "end" } };
+const ruby = { state: "start", where() { return SCHEDULE[timer.weekend() ? 1 : 0][timer.tod]; } };
+const inv = new Set();
+function trigger(t) {
+  const nxt = (TABLE[ruby.state] || {})[t];
+  if (!nxt) return;
+  log(`$ M_ruby.trigger("${t}")`, `퀘스트: S_ruby_${ruby.state} → S_ruby_${nxt}`);
+  ruby.state = nxt;
+  if (t === "T_ruby_found") inv.add("remote");
+  if (t === "T_ruby_given") inv.delete("remote");
+}
+function tick() { if (timer.tod < 3) { timer.tod++; log("$ game.timer.tick()", `시간대 → ${TODS[timer.tod]}`); } }
+
+/* ===== 대사 / 선택지 (say, menu) ===== */
+let face = "neutral", busy = false;
+function sayLine(who, text) {
+  return new Promise(res => {
+    const box = $("say"); box.hidden = false; $("btnWait").hidden = true;
+    $("sayWho").textContent = who; $("sayWho").className = who === "루비" ? "" : "me";
+    const out = $("sayText"); out.textContent = ""; let i = 0, done = false, flap;
+    if (who === "루비") { let o = true; flap = setInterval(() => { $("npcFace").src = (o = !o) ? A.ruby_face_talk : faceSrc(); }, 120); }
+    const typing = setInterval(() => { out.textContent = text.slice(0, ++i); if (i >= text.length) finish(); }, 28);
+    function finish() { clearInterval(typing); clearInterval(flap); out.textContent = text; done = true; $("npcFace").src = faceSrc(); }
+    box.onclick = () => { if (!done) finish(); else { box.onclick = null; res(); } };
+  });
+}
+const me = (t) => sayLine("나", t), r = (f, t) => { if (f) setFace(f); return sayLine("루비", t); };
+function menu(options) {
+  return new Promise(res => {
+    const c = $("choices"); c.innerHTML = ""; c.hidden = false;
+    options.forEach(([label, val]) => { const b = document.createElement("button"); b.textContent = label; b.onclick = () => { c.hidden = true; res(val); }; c.appendChild(b); });
+  });
+}
+function faceSrc() { return face === "neutral" ? BLANK : A["ruby_face_" + (face === "closed" ? "blink" : face)]; }
+function setFace(f) { face = f; $("npcFace").src = faceSrc(); }
+function showRuby(x) { const n = $("npc"); n.hidden = false; n.style.left = x + "%"; n.classList.remove("enter"); void n.offsetWidth; n.classList.add("enter"); }
+async function fade(fn) { $("fade").classList.add("on"); await wait(450); fn && fn(); await wait(150); $("fade").classList.remove("on"); await wait(300); }
+const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+/* ===== game_main: 현재 장소의 screen 그리기 ===== */
+let loc = "bedroom";
+function draw() {
+  const l = L[loc], tod = timer.dark() ? "night" : "day";
+  $("bg").src = A[`${l.bg}_${tod}`];
+  const box = $("objs"); box.innerHTML = "";
+  for (const [name, act, tip] of SCREENS[loc]) {
+    const img = document.createElement("img"); img.className = "obj"; img.alt = tip; img.tabIndex = 0;
+    const [x, y] = POS[name];
+    img.onload = () => { img.style.width = (img.naturalWidth / 12.8) + "%"; };
+    img.src = A[`object_${name}_${tod}`];
+    img.style.left = (x / 12.8) + "%"; img.style.top = (y / 7.2) + "%";
+    img.onmouseenter = () => { $("tip").hidden = false; $("tip").textContent = tip; };
+    img.onmouseleave = () => { $("tip").hidden = true; };
+    img.onclick = () => run(act, name);
+    img.onkeydown = (e) => { if (e.key === "Enter") run(act, name); };
+    box.appendChild(img);
+  }
+  const here = ruby.where() === loc;
+  $("npc").hidden = !here;
+  if (here) { $("npc").style.left = NPC_X[loc] + "%"; setFace("neutral"); }
+  $("hudTime").textContent = timer.label(); $("hudLoc").textContent = l.name;
+  $("hudQuest").textContent = S[ruby.state];
+  $("btnWait").disabled = timer.tod >= 3; $("btnWait").hidden = false;
+  drawTree();
+}
+function drawTree() {
+  const mark = (id, label) => id === loc ? `<span class="cur">${label}</span>` : label;
+  $("tree").innerHTML =
+`L_home_entrance  ${mark("entrance", "1층 현관")}
+ ├ L_home_hallway   ${mark("hallway", "2층 복도")}
+ │  ├ L_home_bedroom  ${mark("bedroom", "내 방")}
+ │  └ L_home_bathroom 욕실 (locked)
+ ├ L_home_kitchen   ${mark("kitchen", "부엌")}
+ └ L_home_livingroom ${mark("livingroom", "거실")}`;
+  const cell = (d, t) => { const v = SCHEDULE[d][t]; const s = v ? L[v].name : "—"; const now = (timer.weekend() ? 1 : 0) === d && timer.tod === t; return (now ? `<span class="cur">${s}</span>` : s).padEnd(now ? 30 : 6, " "); };
+  $("sched").innerHTML = `        아침    오후    저녁    밤\n평일    ${[0,1,2,3].map(t => cell(0, t)).join("  ")}\n주말    ${[0,1,2,3].map(t => cell(1, t)).join("  ")}`;
+}
+function log(code, note) {
+  const p = $("log");
+  p.innerHTML = `<span class="cm"># ${note}</span>\n${code.replace(/</g, "&lt;")}\n\n` + p.innerHTML;
+}
+
+/* ===== MoveTo → global_lock_check → home_lock_check → 진입 이벤트 ===== */
+async function run(act, name) {
+  if (busy) return; busy = true; $("tip").hidden = true;
+  try {
+    if (act.startsWith("move:")) await moveTo(act.slice(5));
+    else await interact(act);
+  } finally { busy = false; $("say").hidden = true; draw(); }
+}
+async function lockCheck(origin, dest) {
+  if (dest === "town") { log("call home_lock_check(origin, L_town_map)", "lock check: 밖 → 막힘 (return True)"); await me("( 밖에 나가는 건 다음에 하자. 마을 지도는 다음 단계에서. )"); return true; }
+  if (dest === "bathroom") {
+    log("call home_lock_check(origin, L_home_bathroom)", "lock check: 욕실 → 막힘");
+    if (timer.tod === 0) { await sayLine("", "*쏴아아…*"); await sayLine("루비", "누구야! 나 씻는 중이야!"); }
+    else await me("( 지금은 볼일이 없다. )");
+    return true;
+  }
+  if (timer.tod === 3 && origin === "hallway" && dest === "entrance") { log("if game.timer.tod == 3 and dest is L_home_entrance:\n    return True", "lock check: 밤엔 아래층 금지"); await me("( 다들 자는 시간이다. 나도 자야지. )"); return true; }
+  if (ruby.state === "start" && dest === "livingroom") await me("( 냄새는 부엌 쪽에서 나는데… )");
+  return false;
+}
+async function moveTo(dest) {
+  if (await lockCheck(loc, dest)) return;
+  loc = dest; log(`action MoveTo(L_home_${dest})`, `이동: ${L[dest].name}`);
+  draw();
+  if (dest === "kitchen" && ruby.state === "start" && timer.tod === 0) {
+    log("label home_kitchen_dialogue:", "진입 이벤트 (퀘스트 단계 + 시간 조건)");
+    setFace("happy"); await r("happy", "어, 내려왔네? 마침 다 됐어. 나 좀 봐봐!"); setFace("neutral");
+  }
+}
+
+/* ===== 물건 클릭 / 루비 대화 ===== */
+async function interact(act) {
+  if (act === "bed") {
+    if (timer.tod < 2) { await me("( 아직 잘 시간은 아니다. )"); return; }
+    await me("( 오늘은 이만 자자. )");
+    await fade(() => { timer.day++; timer.tod = 0; trigger("T_all_sleep"); log("$ game.timer.sleep()   # 모든 캐릭터에 T_all_sleep", `잠자기 → ${timer.label()}`); draw(); });
+    await me("( 아침이다. )"); return;
+  }
+  if (act === "desk") {
+    if (ruby.state === "remote") { await me("( 책상 밑에… 있다! TV 리모컨이다. )"); trigger("T_ruby_found"); }
+    else { await me("( 컴퓨터로 시간을 좀 때웠다. )"); tick(); }
+    return;
+  }
+  if (act === "fridge") return me("( 우유를 한 컵 마셨다. )");
+  if (act === "stove") return me(timer.tod === 0 && !timer.weekend() ? "( 팬케이크가 아직 따뜻하다. )" : "( 지금은 아무것도 없다. )");
+  if (act === "tv") return me(["start", "remote", "give"].includes(ruby.state) ? "( 리모컨이 없으면 채널을 못 돌린다… )" : "( 재미있는 게 없네. )");
+  if (act === "couch") { await me("( 소파에 잠깐 누워 있었다. )"); tick(); return; }
+}
+async function talkRuby() {
+  if (busy) return; busy = true; $("tip").hidden = true;
+  log("action TalkTo(M_ruby)  →  label ruby_button_dialogue", `대화 (현재 단계: S_ruby_${ruby.state})`);
+  try {
+    if (ruby.state === "start") {
+      await r("happy", "일어났어? 팬케이크 구웠으니까 먹어.");
+      await r("neutral", "아 맞다, 혹시 TV 리모컨 못 봤어? 어제부터 안 보이네.");
+      await r(null, "네 방에 굴러들어간 거 아니야? 찾으면 좀 갖다줘.");
+      trigger("T_ruby_breakfast");
+    } else if (ruby.state === "give" && inv.has("remote")) {
+      await r("surprised", "어? 리모컨! 어디 있었어?");
+      setFace("happy"); $("npc").classList.remove("hop"); void $("npc").offsetWidth; $("npc").classList.add("hop");
+      await r("happy", "고마워! 그럼 내일 저녁에 같이 영화 보자. 팝콘은 내가 준비할게.");
+      trigger("T_ruby_given");
+    } else if (ruby.state === "night" && loc === "livingroom" && timer.tod === 2) {
+      await r("happy", "왔구나! 앉아, 시작한다.");
+      await fade(() => {}); await sayLine("", "( 둘이서 소파에 앉아 영화를 봤다. )");
+      await r("happy", "재밌었다! 또 보자.");
+      trigger("T_ruby_watched"); tick();
+    } else {
+      $("say").hidden = false; $("sayWho").textContent = "루비"; $("sayText").textContent = "응? 왜?";
+      const opts = [["요즘 어때?", "how"]];
+      if (ruby.state === "remote") opts.push(["리모컨 말인데…", "remote"]);
+      opts.push(["아무것도 아니야.", "no"]);
+      log("menu:\n    \"리모컨 말인데…\" if M_ruby.is_state(S_ruby_remote):", "조건부 선택지");
+      const v = await menu(opts);
+      if (v === "how") await r("happy", "나야 늘 똑같지 뭐. 너는 학교 잘 다니고?");
+      else if (v === "remote") await r("angry", "아직 못 찾았어? 네 방 책상 근처 잘 봐봐!");
+      else await r("neutral", "싱겁기는.");
+    }
+  } finally { setFace("neutral"); busy = false; $("say").hidden = true; draw(); }
+}
+$("npc").onclick = talkRuby;
+$("npc").onmouseenter = () => { $("tip").hidden = false; $("tip").textContent = "루비와 대화"; };
+$("npc").onmouseleave = () => { $("tip").hidden = true; };
+$("btnWait").onclick = async () => { if (busy) return; tick(); draw(); };
+$("npcBody").src = A.ruby_body_base; $("npcFace").src = BLANK;
+
+/* 눈 깜빡임 */
+(function blink() { setTimeout(() => { if (face === "neutral" && !$("npc").hidden && $("say").hidden) { $("npcFace").src = A.ruby_face_blink; setTimeout(() => { if (face === "neutral") $("npcFace").src = BLANK; }, 120); } blink(); }, [2500, 3500, 5000][Math.floor(Math.random() * 3)]); })();
+
+/* 시작: label home_start */
+draw();
+log("label home_start:\n    $ game.location = L_home_bedroom\n    jump game_main", "게임 시작 — 내 방");
+(async () => { busy = true; await me("( 하암… 아침이다. )"); await me("( 아래층에서 뭔가 맛있는 냄새가 나는데. )"); busy = false; $("say").hidden = true; })();
+</script>

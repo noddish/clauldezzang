@@ -48,6 +48,10 @@ label demo_menu:
             jump demo_staging
         "⑥ 미니 턴제 전투":
             jump demo_battle
+        "⑦ AI로 그린 미국 카툰 캐릭터 (루비)":
+            jump demo_ruby
+        "⑧ 집 탐험 — 내 방에서 1층까지 (Summertime Saga 구조)":
+            jump home_start
         "끝내기":
             return
 
