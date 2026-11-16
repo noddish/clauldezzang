@@ -1,0 +1,8 @@
+# Ren'Py가 실행할 때 자동으로 만드는 파일 (원본은 .rpy)
+*.rpyc
+*.rpymc
+game/cache/
+game/saves/
+log.txt
+traceback.txt
+errors.txt

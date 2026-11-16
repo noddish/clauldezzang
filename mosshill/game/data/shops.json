@@ -1,0 +1,4 @@
+{
+  "pip": {"name": "핍의 잡화점", "stock": ["potion", "ether", "antidote", "bomb", "iron_sword", "chain_vest", "lucky_charm"],
+          "buys": ["slime_jelly", "goblin_fang", "potion", "ether", "antidote", "bomb"], "sell_rate": 0.5}
+}

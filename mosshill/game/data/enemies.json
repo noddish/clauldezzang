@@ -1,0 +1,14 @@
+{
+  "slime":     {"name": "숲 슬라임",   "hp": 18,  "mp": 0, "atk": 6,  "def": 1, "spd": 3, "exp": 6,  "gold": 4,
+                "skills": ["slime_spit"],             "ai": {"attack": 0.7, "slime_spit": 0.3},
+                "drops": [{"item": "slime_jelly", "rate": 0.6}]},
+  "goblin":    {"name": "고블린",      "hp": 30,  "mp": 0, "atk": 9,  "def": 3, "spd": 7, "exp": 12, "gold": 10,
+                "skills": ["goblin_stab"],            "ai": {"attack": 0.6, "goblin_stab": 0.4},
+                "drops": [{"item": "goblin_fang", "rate": 0.5}, {"item": "potion", "rate": 0.15}]},
+  "mushroom":  {"name": "독버섯",      "hp": 24,  "mp": 0, "atk": 7,  "def": 4, "spd": 2, "exp": 10, "gold": 6,
+                "skills": ["spore_puff"],             "ai": {"attack": 0.5, "spore_puff": 0.5},
+                "drops": [{"item": "antidote", "rate": 0.4}]},
+  "toad_king": {"name": "두꺼비 왕",   "hp": 160, "mp": 0, "atk": 13, "def": 5, "spd": 4, "exp": 60, "gold": 80, "boss": true,
+                "skills": ["tongue_lash", "belly_slam"], "ai": {"attack": 0.4, "tongue_lash": 0.35, "belly_slam": 0.25},
+                "drops": [{"item": "pip_cargo", "rate": 1.0}, {"item": "hi_potion", "rate": 1.0}]}
+}

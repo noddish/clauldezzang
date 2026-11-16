@@ -1,0 +1,6 @@
+{
+  "forest":     {"rate": 0.35, "groups": [{"enemies": ["slime"], "weight": 3}, {"enemies": ["slime", "slime"], "weight": 2}]},
+  "cave_1":     {"rate": 0.5,  "groups": [{"enemies": ["goblin"], "weight": 2}, {"enemies": ["mushroom", "goblin"], "weight": 2}, {"enemies": ["slime", "mushroom", "slime"], "weight": 1}]},
+  "tavern_cellar": {"rate": 1.0, "groups": [{"enemies": ["slime", "slime", "slime"], "weight": 1}]},
+  "boss_toad":  {"rate": 1.0,  "groups": [{"enemies": ["toad_king"], "weight": 1}]}
+}

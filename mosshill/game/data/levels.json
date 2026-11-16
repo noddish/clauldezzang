@@ -1,0 +1,16 @@
+{
+  "player": {
+    "1": {"exp": 0,   "hp": 60,  "mp": 16, "atk": 8,  "def": 4, "spd": 6, "learn": ["first_aid"]},
+    "2": {"exp": 20,  "hp": 72,  "mp": 20, "atk": 10, "def": 5, "spd": 7},
+    "3": {"exp": 55,  "hp": 86,  "mp": 24, "atk": 12, "def": 6, "spd": 8, "learn": ["taunt"]},
+    "4": {"exp": 110, "hp": 100, "mp": 28, "atk": 14, "def": 7, "spd": 8},
+    "5": {"exp": 190, "hp": 115, "mp": 32, "atk": 16, "def": 8, "spd": 9}
+  },
+  "ruby": {
+    "1": {"exp": 0,   "hp": 55,  "mp": 14, "atk": 11, "def": 3, "spd": 9, "learn": ["spin_slash"]},
+    "2": {"exp": 20,  "hp": 66,  "mp": 17, "atk": 13, "def": 4, "spd": 10},
+    "3": {"exp": 55,  "hp": 78,  "mp": 20, "atk": 16, "def": 5, "spd": 11},
+    "4": {"exp": 110, "hp": 90,  "mp": 23, "atk": 18, "def": 5, "spd": 12},
+    "5": {"exp": 190, "hp": 103, "mp": 26, "atk": 21, "def": 6, "spd": 13}
+  }
+}
