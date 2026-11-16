@@ -1,0 +1,64 @@
+<title>루비 화풍 비교</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+/* 화풍 8가지 카드 그리드. 각 카드 = 실제 게임 화면(거실) + 얼굴 확대 + 특징 */
+:root { --bg:#eef0f4; --card:#ffffff; --ink:#1d2030; --muted:#5b6176; --line:#d9dce6; --accent:#d9572b; --tag:#f3f4f8;
+  --f-d:"Do Hyeon","IBM Plex Sans KR",system-ui,sans-serif; --f-b:"IBM Plex Sans KR",system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#121419; --card:#1b1e27; --ink:#e9ebf2; --muted:#9ba1b5; --line:#2b2f3d; --accent:#ff8a5c; --tag:#252935; color-scheme:dark; } }
+:root[data-theme="dark"] { --bg:#121419; --card:#1b1e27; --ink:#e9ebf2; --muted:#9ba1b5; --line:#2b2f3d; --accent:#ff8a5c; --tag:#252935; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--ink); font-family:var(--f-b); margin:0; line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:22px 40px; }
+.wrap { max-width:1200px; margin:0 auto; display:grid; gap:18px; }
+h1 { font:400 34px var(--f-d); margin:0; text-wrap:balance; }
+.lead { color:var(--muted); margin:4px 0 0; max-width:72ch; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap:16px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; display:grid; grid-template-rows:auto 1fr; min-width:0; }
+.card.hl { border:2px solid var(--accent); }
+.shot { position:relative; aspect-ratio:16/9; background:#000; }
+.shot img { width:100%; height:100%; display:block; object-fit:cover; }
+.face { position:absolute; left:8px; bottom:8px; width:30%; aspect-ratio:360/300; border-radius:10px; border:2px solid #fff; background:#fff; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.35); }
+.face img { width:100%; height:100%; object-fit:cover; }
+.num { position:absolute; top:8px; left:8px; font:400 22px var(--f-d); background:rgba(0,0,0,.7); color:#fff; padding:2px 10px; border-radius:8px; }
+.body { padding:14px 16px 16px; display:grid; gap:8px; align-content:start; }
+.body h2 { font:400 23px var(--f-d); margin:0; }
+.ref { font-size:13px; color:var(--muted); margin:0; }
+.badge { justify-self:start; font:700 11px var(--f-b); letter-spacing:.06em; color:#fff; background:var(--accent); border-radius:99px; padding:2px 9px; }
+.meter { display:grid; grid-template-columns:auto 1fr; gap:4px 10px; font-size:13px; align-items:center; }
+.dots { display:flex; gap:3px; } .dots i { width:14px; height:6px; border-radius:3px; background:var(--tag); } .dots i.on { background:var(--accent); }
+.note { font-size:13.5px; margin:0; }
+</style>
+<div class="wrap">
+  <header>
+    <h1>루비, 화풍 8가지</h1>
+    <p class="lead">같은 캐릭터, 같은 포즈, 같은 거실 배경입니다. 왼쪽 아래는 얼굴 확대입니다. 마음에 드는 번호를 알려주시면 그 화풍으로 배경과 표정까지 맞추겠습니다. "AI 일관성"은 같은 화풍으로 표정·옷·다른 캐릭터를 계속 뽑아낼 때 얼마나 흔들리지 않는지입니다.</p>
+  </header>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+const I = /*IMAGES*/{};
+const S = [
+  ["s0_flat", "플랫 시트콤풍 (지금 버전)", "굵고 고른 외곽선, 단색 채색. 미국 가족 시트콤 애니메이션 계열.", 5, 5, "배경과 제일 잘 어울리고, 표정 조각을 만들어도 티가 거의 안 납니다. 대량 제작에 가장 유리합니다.", "지금 쓰는 중"],
+  ["s1_painted", "페인팅 비주얼노벨풍", "반실사 비율, 부드러운 그라데이션 음영. 서머타임 사가 실제 화풍에 가장 가깝습니다.", 3, 3, "고급스럽고 원작 느낌이 나지만, 음영 때문에 얼굴만 바꿔 끼우면 경계가 보이기 쉽습니다. 배경도 같은 페인팅풍으로 다시 그려야 합니다.", "원작에 가장 가까움"],
+  ["s2_90s", "90년대 TV 카툰풍", "아주 굵은 선, 큰 눈, 음영 없는 단색. 90년대 토요일 아침 만화 느낌.", 5, 4, "코미디·개그 톤에 잘 맞고 제작이 쉽습니다. 진지한 장면에서는 가볍게 보일 수 있습니다.", ""],
+  ["s3_indie", "미니멀 인디 애니풍", "얇은 선, 점 눈, 단순한 형태. 요즘 스트리밍 카툰 느낌.", 5, 5, "가장 그리기 쉽고 일관성도 높지만, 눈이 점이라 감정 표현의 폭이 좁습니다.", ""],
+  ["s4_comic", "미국 코믹스풍", "잉크 선, 해칭, 망점 음영, 근육과 명암이 강조된 비율.", 2, 3, "전투 RPG와 잘 어울리는 박력이 있습니다. 선과 해칭이 매번 달라져 표정 조각이 잘 안 맞습니다.", "전투 RPG 느낌"],
+  ["s5_3d", "3D 애니메이션 영화풍", "부드러운 3D 렌더 느낌, 큰 눈, 매끈한 피부.", 2, 2, "가장 화려하지만 2D 배경과 섞기 어렵고, 표정마다 조명과 질감이 달라지기 쉽습니다.", ""],
+  ["s6_spy", "성인 애니 스파이코미디풍", "얇은 벡터 선, 실제 사람 비율, 칼같은 그림자 면. 다만 AI가 1번과 거의 같게 그렸습니다.", 4, 5, "AI가 1번과 잘 구분하지 못했습니다. 이 방향을 원하시면 프롬프트를 더 다듬어야 합니다.", ""],
+  ["s7_rubber", "1930년대 러버호스풍", "고무호스 같은 팔, 흰 장갑, 파이 조각 눈, 빛바랜 레트로 색감.", 4, 4, "개성이 가장 강해서 첫인상에 남습니다. 배경, 소품, UI까지 전부 이 시대 느낌으로 맞춰야 어울립니다.", "개성 최강"],
+];
+const dots = (n) => '<span class="dots">' + [1,2,3,4,5].map(i => `<i class="${i <= n ? "on" : ""}"></i>`).join("") + "</span>";
+document.getElementById("grid").innerHTML = S.map(([k, name, ref, cons, ease, note, badge], i) => `
+  <article class="card${badge ? " hl" : ""}">
+    <div class="shot"><img src="${I[k]}" alt="${name} 루비가 거실에 서 있는 화면"><span class="num">${i + 1}</span>
+      <div class="face"><img src="${I[k + "_face"]}" alt="${name} 얼굴 확대"></div></div>
+    <div class="body">
+      ${badge ? `<span class="badge">${badge}</span>` : ""}
+      <h2>${name}</h2>
+      <p class="ref">${ref}</p>
+      <div class="meter"><span>AI 일관성</span>${dots(cons)}<span>제작 난이도 (쉬움)</span>${dots(ease)}</div>
+      <p class="note">${note}</p>
+    </div>
+  </article>`).join("");
+</script>
