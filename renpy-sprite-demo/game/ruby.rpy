@@ -66,6 +66,8 @@ transform ruby_center:
     xcenter 0.5 yalign 1.0
 transform ruby_left:
     xcenter 0.28 yalign 1.0
+transform ruby_right:            # 원작 배치: 상대 캐릭터는 오른쪽, 주인공(왼쪽)을 바라봄
+    xcenter 0.7 yalign 1.0
 
 
 label demo_ruby:

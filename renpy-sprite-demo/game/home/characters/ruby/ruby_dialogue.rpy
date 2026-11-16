@@ -5,7 +5,7 @@
 
 label ruby_button_dialogue:
     scene expression game.location.bg
-    show ruby at ruby_center
+    show ruby at ruby_right
     with dissolve
 
     if M_ruby.is_state(S_ruby_start):
@@ -16,7 +16,7 @@ label ruby_button_dialogue:
 
     elif M_ruby.is_state(S_ruby_give) and "remote" in game.inventory:
         r surprised "어? 리모컨! 어디 있었어?"
-        show ruby happy at ruby_center, double_hop
+        show ruby happy at ruby_right, double_hop
         r happy "고마워! 그럼 내일 저녁에 같이 영화 보자. 팝콘은 내가 준비할게."
         $ M_ruby.trigger("T_ruby_given")
 
@@ -25,7 +25,7 @@ label ruby_button_dialogue:
         scene expression game.location.bg
         with fade
         "( 둘이서 소파에 앉아 영화를 봤다. )"
-        show ruby happy at ruby_center
+        show ruby happy at ruby_right
         with dissolve
         r "재밌었다! 또 보자."
         $ M_ruby.trigger("T_ruby_watched")

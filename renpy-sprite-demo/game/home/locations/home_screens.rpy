@@ -34,7 +34,7 @@ screen npc_button(machine, xcenter_pos):
         tooltip "루비와 대화"
 
 transform npc_size:
-    zoom 0.92
+    zoom 1.0
 
 
 ## ----------------------------------------------------------------- HUD (원작 screen ui)
@@ -76,7 +76,7 @@ screen home_hallway():
     use object_button("hallway_bath", MoveTo(L_home_bathroom), "욕실")
     use object_button("hallway_stairs", MoveTo(L_home_entrance), "1층으로 내려가기")
     if L_home_hallway.is_here(M_ruby):
-        use npc_button(M_ruby, 0.62)
+        use npc_button(M_ruby, 0.7)
     use hud
 
 screen home_entrance():
@@ -93,7 +93,7 @@ screen home_kitchen():
     use object_button("kitchen_fridge", Interact("home_fridge"), "냉장고")
     use object_button("kitchen_stove", Interact("home_stove"), "가스레인지")
     if L_home_kitchen.is_here(M_ruby):
-        use npc_button(M_ruby, 0.56)
+        use npc_button(M_ruby, 0.58)   # 냉장고를 가리지 않게
     use hud
 
 screen home_livingroom():
@@ -102,5 +102,5 @@ screen home_livingroom():
     use object_button("living_tv", Interact("home_tv"), "TV")
     use object_button("living_couch", Interact("home_couch"), "소파")
     if L_home_livingroom.is_here(M_ruby):
-        use npc_button(M_ruby, 0.5)
+        use npc_button(M_ruby, 0.7)
     use hud

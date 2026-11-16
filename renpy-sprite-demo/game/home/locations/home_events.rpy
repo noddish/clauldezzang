@@ -19,7 +19,7 @@ label home_start:
 label home_kitchen_dialogue:
     if M_ruby.is_state(S_ruby_start) and game.timer.tod == 0:
         scene expression game.location.bg
-        show ruby happy at ruby_center
+        show ruby happy at ruby_right
         with dissolve
         r "어, 내려왔네? 마침 다 됐어."
         hide ruby
