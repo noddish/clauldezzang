@@ -1,0 +1,50 @@
+<title>루비 눈썹·표정 시안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+/* 얼굴 시안 7개: 큰 얼굴 확대 + 게임 화면 미리보기 */
+:root { --bg:#f1eeea; --card:#ffffff; --ink:#22201d; --muted:#6b645c; --line:#e0d9d0; --accent:#b4532a;
+  --f-d:"Do Hyeon","IBM Plex Sans KR",system-ui,sans-serif; --f-b:"IBM Plex Sans KR",system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#16140f; --card:#211e19; --ink:#efeae3; --muted:#a59d92; --line:#36312a; --accent:#ef8a5a; color-scheme:dark; } }
+:root[data-theme="dark"] { --bg:#16140f; --card:#211e19; --ink:#efeae3; --muted:#a59d92; --line:#36312a; --accent:#ef8a5a; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--ink); font-family:var(--f-b); margin:0; line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); padding-block:22px 40px; }
+.wrap { max-width:1200px; margin:0 auto; display:grid; gap:18px; }
+h1 { font:400 34px var(--f-d); margin:0; }
+.lead { color:var(--muted); margin:4px 0 0; max-width:70ch; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap:14px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; min-width:0; }
+.card.base { border:2px dashed var(--muted); }
+.card > img { display:block; width:100%; aspect-ratio:400/420; object-fit:cover; }
+.body { padding:12px 14px 14px; display:grid; gap:6px; }
+.body h2 { font:400 22px var(--f-d); margin:0; display:flex; gap:8px; align-items:baseline; }
+.body h2 span { font:700 13px var(--f-b); color:#fff; background:var(--accent); border-radius:6px; padding:1px 7px; }
+.card.base h2 span { background:var(--muted); }
+.body p { margin:0; font-size:13.5px; color:var(--muted); }
+.body img { width:100%; border-radius:8px; display:block; aspect-ratio:16/9; }
+</style>
+<div class="wrap">
+  <header>
+    <h1>루비 눈썹·표정 시안</h1>
+    <p class="lead">얼굴 생김새(눈·코·입)는 5번으로 고정하고, 1~6번 시안의 눈썹과 표정 분위기를 함께 입혔습니다. 5번 카드가 원래 5번 얼굴 그대로입니다. 위는 얼굴 확대, 아래는 실제 게임 화면입니다.</p>
+  </header>
+  <div class="grid" id="g"></div>
+</div>
+<script>
+const I = /*IMAGES*/{};
+const F = [
+  ["귀여운", "가늘고 둥근 눈썹, 반짝이는 눈, 볼이 올라간 밝은 미소."],
+  ["시크", "높은 아치 눈썹 한쪽을 살짝 올리고, 내리깐 눈으로 한쪽 입꼬리 미소."],
+  ["장난꾸러기", "짝짝이로 올라간 숱 많은 눈썹, 가늘게 뜬 눈, 보조개 씩 웃음."],
+  ["성숙", "도톰한 일자 눈썹, 여유 있게 내려앉은 눈꺼풀, 우아한 반미소."],
+  ["순한 (원래 5번)", "부드러운 눈썹과 수줍은 미소. 기준 얼굴."],
+  ["강인한 모험가", "진하게 모인 일자 눈썹, 집중한 눈빛, 다문 입의 자신감 있는 미소."],
+];
+document.getElementById("g").innerHTML = F.map(([n, d], i) => `
+  <article class="card${i === 4 ? " base" : ""}">
+    <img src="${I["h" + (i + 1)]}" alt="${n} 얼굴 확대">
+    <div class="body"><h2><span>${i + 1}</span>${n}</h2><p>${d}</p>
+      <img src="${I["s" + (i + 1)]}" alt="${n} 게임 화면 미리보기"></div>
+  </article>`).join("");
+</script>
