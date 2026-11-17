@@ -20,6 +20,13 @@ tools/run_autotest.sh m1 /tmp/shots ~/renpy-8.3.7-sdk
 | `m1_lazy` | 아무 의뢰도 안 하고 잠만 잤을 때 → 3일차 감사가 강제로 열리고 0/4 |
 | `m2` | m1 경로를 진짜 전투로 + 상점 구매, 소지품 화면, 경험치·레벨 검사 |
 | `m2_lose` | HP 1 로 보스전 → 패배 처리 (길드에서 깨어남, 골드 절반, HP 절반) |
+| `ui` | 소지품·장비·상점 화면: 장착, 회복약 사용, 판매 + 스크린샷 |
+
+전부 한 번에 (실패가 하나라도 있으면 exit 1):
+
+```bash
+tools/run_all_tests.sh /tmp/test-results ~/renpy-8.3.7-sdk
+```
 
 Ren'Py 없이 도는 검사:
 

@@ -56,7 +56,7 @@ label autotest_m0:
         problems = DATA.check()
         autotest_log("data check: %d problem(s)" % len(problems))
         for p in problems:
-            autotest_log("  " + p)
+            autotest_log("  FAIL  " + p)
         autotest_log("items=%d skills=%d enemies=%d" % (len(DATA.items), len(DATA.skills), len(DATA.enemies)))
 
     scene expression Placeholder("길드하우스 앞 — 1일차 아침")
