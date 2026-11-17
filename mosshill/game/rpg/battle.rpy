@@ -40,14 +40,15 @@ init -15 python:
 
     ## ---------------------------------------------------------------- 배치와 그림
     ALLY_X = {"player": 0.13, "ruby": 0.31}
-    STAGE_FLOOR = 575          # 유닛 발 위치 (아래 상태창 위)
+    STAGE_FLOOR = 575          # 적의 발 위치 (아래 상태창 위)
+    ALLY_FLOOR = 650           # 아군 그림 아래 끝 — 허벅지에서 잘린 선이 상태창 뒤로 숨게
 
     def enemy_x(i, n):
         return {1: [0.74], 2: [0.64, 0.84], 3: [0.58, 0.74, 0.9]}[n][i]
 
     def unit_pos(b, u):
         if u.side == "ally":
-            return ALLY_X[u.uid], STAGE_FLOOR
+            return ALLY_X[u.uid], ALLY_FLOOR
         i = b.enemies.index(u)
         return enemy_x(i, len(b.enemies)), STAGE_FLOOR - 20
 
@@ -62,10 +63,7 @@ init -15 python:
         if u.side == "ally":
             if u.uid == "ruby":
                 return Transform("ruby", zoom=0.62, xzoom=-1.0)      # 오른쪽(적)을 보게 뒤집기
-            img = "player_battle"
-            if renpy.has_image(img):
-                return Transform(img, zoom=0.62)
-            return Transform(PlaceholderSprite(u.name, "#4a5a7a", 600), zoom=0.62)
+            return Transform("kai", zoom=0.62)                       # 원래 오른쪽(적)을 봄
         img = "enemy_" + u.kind
         if renpy.has_image(img):
             return img

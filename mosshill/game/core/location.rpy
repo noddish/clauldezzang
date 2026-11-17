@@ -11,8 +11,10 @@
 ##           when=lambda: SUB_MARTHA.is_state("cellar")),
 ##   ]
 ##
-## 물건 그림: images/objects/object_<장소>_<물건>_<day|night>.png 가 있으면 그 그림을
-## rect 의 왼쪽 위에 놓는다 (원작의 오려낸 조각 방식). 없으면 반투명 임시 버튼을 그린다.
+## 물건 모양: images/objects/mask_<장소>_<물건>.png (rect 크기, 물건 모양만 불투명) 가 있으면
+## 그 모양대로만 클릭되고, 마우스를 올리면 지금 배경을 그 모양으로 잘라 밝게 그린다.
+## (원작은 배경과 똑같은 조각 PNG 를 낮·밤 따로 얹었다 — 같은 효과를 그림 파일 없이 낸다)
+## 마스크가 없으면 반투명 임시 버튼을 그린다.
 ## ============================================================================
 
 default here = "guild_hall"
@@ -49,13 +51,14 @@ init -25 python:
         def visible(self):
             return self.when is None or self.when()
 
-        def image(self, loc_id):
-            tod = "night" if is_dark() else "day"
-            for t in (tod, "day"):
-                path = "images/objects/object_%s_%s_%s.png" % (loc_id, self.id, t)
-                if renpy.loadable(path):
-                    return path
-            return None
+        def mask(self, loc_id):
+            path = "images/objects/mask_%s_%s.png" % (loc_id, self.id)
+            return path if renpy.loadable(path) else None
+
+        def hover_image(self, loc_id):
+            """마우스를 올렸을 때: 지금 배경을 물건 모양으로 잘라 밝게"""
+            piece = AlphaMask(Crop(self.rect, location_bg(loc_id)), self.mask(loc_id))
+            return At(piece, obj_hover)
 
     def location_bg(loc_id):
         loc = LOC[loc_id]
@@ -149,19 +152,21 @@ transform obj_hover:
 
 transform npc_spot(x):
     xcenter x yalign 1.0
+    xzoom (-1.0 if x < 0.5 else 1.0)     # 왼쪽에 서면 화면 가운데를 보게 뒤집기
+    matrixcolor light_matrix()            # 밤에는 푸르스름하게
 
 screen location_view(loc_id):
     tag location
     add location_bg(loc_id)
 
     for o in visible_objects(loc_id):
-        $ img = o.image(loc_id)
-        if img:
+        $ mask = o.mask(loc_id)
+        if mask:
             imagebutton:
                 pos (o.rect[0], o.rect[1])
-                idle img
-                hover At(img, obj_hover)
-                focus_mask True
+                idle Null(o.rect[2], o.rect[3])
+                hover o.hover_image(loc_id)
+                focus_mask mask
                 action o.action
                 tooltip o.tip
         else:

@@ -9,6 +9,15 @@ style hud_frame:
 style hud_text:
     size 20
     color "#ffffff"
+## 오른쪽 아래 버튼: 밝은 배경 위에서도 보이게 어두운 바탕
+style hud_button:
+    background Frame(Solid("#0c0e18c8"), 8, 8)
+    hover_background Frame(Solid("#3a2e18e0"), 8, 8)
+    padding (18, 10)
+style hud_button_text:
+    size 22
+    idle_color "#ffffff"
+    hover_color "#ffd38a"
 
 screen hud():
     frame:
@@ -33,8 +42,8 @@ screen hud():
 
     hbox:
         xalign 1.0 yalign 1.0 xoffset -12 yoffset -12 spacing 10
-        textbutton "소지품" action Jump("open_inventory")
-        textbutton "시간 보내기" action WaitTick()
+        textbutton "소지품" action Jump("open_inventory") style "hud_button"
+        textbutton "시간 보내기" action WaitTick() style "hud_button"
 
     $ tip = GetTooltip()
     if tip:

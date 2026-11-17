@@ -17,12 +17,20 @@
 
 ## ---------------------------------------------------------------- 위치 (원작 배치)
 ## 대화: 주인공은 왼쪽에서 오른쪽을 보고, 상대는 오른쪽에서 왼쪽을 본다.
+## 밤(저녁·밤)에는 인물도 배경처럼 푸르스름하게 (보여 줄 때의 시간대로 정해진다).
+init -10 python:
+    def light_matrix():
+        return TintMatrix("#a3acd6") if is_dark() else IdentityMatrix()
+
 transform stage_left:
     xcenter 0.27 yalign 1.0
+    matrixcolor light_matrix()
 transform stage_center:
     xcenter 0.5 yalign 1.0
+    matrixcolor light_matrix()
 transform stage_right:
     xcenter 0.7 yalign 1.0
+    matrixcolor light_matrix()
 
 
 ## ---------------------------------------------------------------- 대기 / 감정

@@ -51,11 +51,12 @@ screen shop_view(shop_id):
                         $ owned = inventory.get(iid, 0)
                         hbox:
                             spacing 10
+                            use item_icon(iid)
                             textbutton "%s  %dG" % (it["name"], it["price"]):
                                 action Function(shop_buy, shop_id, iid)
                                 sensitive gold >= it["price"]
-                                text_size 20 xsize 230
-                            text "%s%s" % (it["desc"], (" (보유 %d)" % owned) if owned else "") size 16 color "#bbbbbb" xsize 390
+                                text_size 20 xsize 220 yalign 0.5
+                            text "%s%s" % (it["desc"], (" (보유 %d)" % owned) if owned else "") size 16 color "#bbbbbb" xsize 340 yalign 0.5
                 vbox:
                     xsize 440 spacing 6
                     text "팔기" size 22 color "#bcd7ff"

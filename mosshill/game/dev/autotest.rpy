@@ -51,6 +51,36 @@ label splashscreen:
 
 
 ## ---------------------------------------------------------------- M0
+init python:
+    ## 그림 파일 검사: 그림이 빠졌거나, 물건 마스크 크기가 world.rpy 의 rect 와 다르면 문제
+    CAST_FACES = {
+        "ruby":   ["happy", "angry", "sad", "surprised", "blink", "talk"],
+        "kai":    ["happy", "surprised", "sad", "angry", "talk"],
+        "martha": ["happy", "angry", "surprised", "talk"],
+        "pip":    ["happy", "sad", "surprised", "talk"],
+        "gregor": ["happy", "angry", "talk"],
+    }
+
+    def asset_problems():
+        out = []
+        need = []
+        for lid, loc in LOC.items():
+            need.append("bg_%s_day" % loc.bg)
+            if loc.night_bg:
+                need.append("bg_%s_night" % loc.bg)
+            for o in OBJECTS.get(lid, []):
+                mask = o.mask(lid)
+                if mask is None:
+                    out.append("물건 마스크 없음: %s/%s" % (lid, o.id))
+                elif tuple(renpy.image_size(mask)) != tuple(o.rect[2:]):
+                    out.append("마스크 크기 %s ≠ rect %s: %s/%s" % (renpy.image_size(mask), o.rect[2:], lid, o.id))
+        need += ["icon_" + i for i in DATA.items] + ["enemy_" + e for e in DATA.enemies]
+        for who, faces in CAST_FACES.items():
+            need += ["%s_body" % who] + ["%s_face_%s" % (who, f) for f in faces]
+        out += ["그림 없음: " + n for n in need if not renpy.has_image(n)]
+        return out
+
+
 label autotest_m0:
     python:
         problems = DATA.check()
@@ -58,8 +88,38 @@ label autotest_m0:
         for p in problems:
             autotest_log("  FAIL  " + p)
         autotest_log("items=%d skills=%d enemies=%d" % (len(DATA.items), len(DATA.skills), len(DATA.enemies)))
+        problems = asset_problems()
+        autotest_log("asset check: %d problem(s)" % len(problems))
+        for p in problems:
+            autotest_log("  FAIL  " + p)
 
-    scene expression Placeholder("길드하우스 앞 — 1일차 아침")
+    scene bg_guild_front_day
+    show kai happy at Transform(xcenter=0.14, yalign=1.0)
+    show martha at Transform(xcenter=0.38, yalign=1.0)
+    show pip happy at Transform(xcenter=0.6, yalign=1.0)
+    show gregor at Transform(xcenter=0.84, yalign=1.0)
+    show screen autoshot("m0_cast")
+    n "주인공과 마을 사람들."
+    hide screen autoshot
+    hide kai
+    hide martha
+    hide pip
+    hide gregor
+
+    ## 물건에 마우스를 올렸을 때 그림 (배경을 마스크 모양으로 잘라 밝게) + 밤 색조
+    $ tod = 3
+    scene expression location_bg("guild_hall")
+    python:
+        _o = [o for o in OBJECTS["guild_hall"] if o.id == "board"][0]
+    show expression _o.hover_image("guild_hall") as hovertest at Transform(pos=(_o.rect[0], _o.rect[1]))
+    show ruby at stage_left
+    show screen autoshot("m0_night_hover")
+    n "밤의 길드 홀. 의뢰판에 마우스를 올린 모습."
+    hide screen autoshot
+    hide hovertest
+    $ tod = 0
+
+    scene bg_guild_hall_day
     show ruby happy at stage_right
     show screen autoshot("m0_ruby_happy")
     r "와아, 진짜 왔다! 나는 루비. 이끼발굽 길드의 마지막 멤버이자, 에이스 검사야!"

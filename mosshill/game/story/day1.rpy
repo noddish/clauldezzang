@@ -4,7 +4,7 @@
 ## ============================================================================
 
 label start:
-    scene expression Placeholder("길드하우스 앞 — 1일차 아침")
+    scene bg_guild_front_day
     with fade
 
     n "이끼 낀 지붕, 삐걱거리는 간판. 여기가 삼촌이 남긴 모험가 길드다."

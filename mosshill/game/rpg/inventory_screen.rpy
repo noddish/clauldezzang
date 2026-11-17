@@ -59,6 +59,14 @@ init -20 python:
         return "heal_hp" in eff or "heal_mp" in eff
 
 
+## 아이템 아이콘 (images/items/icon_<id>.png, 96x96) — 없으면 빈칸
+screen item_icon(iid, size=44):
+    if renpy.has_image("icon_" + iid):
+        add Transform("icon_" + iid, zoom=size / 96.0) yalign 0.5
+    else:
+        null width size height size
+
+
 label open_inventory:
     call screen inventory_view
     jump main_loop
@@ -128,8 +136,9 @@ screen inventory_view():
                             $ it = DATA.items[iid]
                             hbox:
                                 spacing 12
-                                text "%s x%d" % (it["name"], cnt) size 20 color "#ffffff" min_width 200
-                                text it["desc"] size 16 color "#bbbbbb" xsize 300
+                                use item_icon(iid)
+                                text "%s x%d" % (it["name"], cnt) size 20 color "#ffffff" min_width 170 yalign 0.5
+                                text it["desc"] size 16 color "#bbbbbb" xsize 280 yalign 0.5
                                 if tab == "consumable" and field_usable(iid):
                                     textbutton "사용" action Function(use_item_field, iid, who)
                                 elif tab == "equip":
