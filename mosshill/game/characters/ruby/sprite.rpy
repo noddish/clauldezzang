@@ -12,6 +12,9 @@
 ##   (말하는 동안 입은 자동으로 움직임 — config.speaking_attribute)
 ## ============================================================================
 
+init -20 python:
+    CHAR_NAMES["ruby"] = "루비"
+
 ## 기본 얼굴일 때 가끔 눈 깜빡이기
 image ruby_face_idle:
     Null()

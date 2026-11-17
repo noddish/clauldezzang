@@ -18,6 +18,7 @@
 ## ============================================================================
 
 default here = "guild_hall"
+default npc_looking = False   # 장소 안 인물이 지금 앞을 보고 있는가 (물건을 눌러도 그 모습 그대로)
 default npc_greet = False      # 방금 장소에 들어왔는가 (장소 안 인물이 고개를 드는 연출)
 default destination = None
 default visited = set()
@@ -27,6 +28,7 @@ init -25 python:
     LOC = {}
     OBJECTS = {}
     NPC_SPOTS = {}      # 장소 id → {머신 id: 화면 x 위치(0~1)}
+    CHAR_NAMES = {}     # 머신 id → 보이는 이름 (characters/<이름>/sprite.rpy 가 등록)
 
     class Location(object):
         def __init__(self, id, name, bg=None, parent=None, night_bg=True):
@@ -108,6 +110,28 @@ init -25 python:
         return None
 
 
+    ## ---------------------------------------------------------------- 대화·혼잣말 배경
+    def npc_layer(loc_id, state="look", without=None):
+        """장소 안 인물 그림들 — 대화·혼잣말 중에도 그 장소에 있는 사람이 사라지지 않게
+        (원작은 물건을 누르면 장소 화면이 닫히면서 인물도 사라졌다)"""
+        kids = []
+        for mid, x in npcs_here(loc_id):
+            sc = npc_scene(loc_id, mid) if mid != without else None
+            if sc:
+                kids.append(getattr(sc, state))
+        return Fixed(*kids, xysize=(1280, 720)) if kids else Null()
+
+    def location_backdrop(loc_id, blur=False, without=None):
+        """장소 배경 + 장소 안 인물. blur=True 면 흐리게 (대화 장면 — 원작의 _blur 배경).
+        원작은 장소마다 흐린 그림을 따로 저장했지만(279장) 여기서는 실행 중에 흐리게 한다
+        → 파일이 필요 없고 낮·저녁·밤 어느 그림이든 그대로 흐려진다."""
+        d = Fixed(location_bg(loc_id), npc_layer(loc_id, "look", without), xysize=(1280, 720))
+        return At(d, dialogue_blur) if blur else d
+
+    def blurred(d):
+        return At(d, dialogue_blur)
+
+
     ## ---------------------------------------------------------------- 화면 버튼 동작
     class MoveTo(Action):
         def __init__(self, loc_id):
@@ -117,10 +141,11 @@ init -25 python:
             renpy.jump("go_to")
 
     class Interact(Action):
-        """물건 클릭 → label 로"""
+        """물건 클릭 → label 로. 장소 안 인물은 보이던 모습 그대로 남겨 둔다."""
         def __init__(self, label):
             self.label = label
         def __call__(self):
+            renpy.show("npc_layer", what=npc_layer(store.here, "look" if store.npc_looking else "busy"))
             renpy.jump(self.label)
 
     class TalkTo(Action):
@@ -144,14 +169,13 @@ init -25 python:
 label main_loop:
     if game_over:
         return
-    $ _event = pending_event()
-    if _event:
-        call expression _event
-        jump main_loop
+    call run_events("idle")             # 강제 이벤트 (core/events.rpy, on="idle")
+    if game_over:
+        return
     scene expression location_bg(here)
     ## 방금 들어왔으면 장소 안 인물이 하던 일을 멈추고 고개를 든다 (한 번만)
-    $ _greet, npc_greet = npc_greet, False
-    call screen location_view(here, _greet)
+    $ npc_looking, npc_greet = npc_greet, False
+    call screen location_view(here, npc_looking)
     jump main_loop
 
 
@@ -163,12 +187,11 @@ label go_to:
         jump main_loop
     $ here = _dest
     $ npc_greet = True
-    $ _first = _dest not in visited
+    $ visit_count[_dest] = visit_count.get(_dest, 0) + 1
     $ visited.add(_dest)
     scene expression location_bg(here)
     with dissolve
-    if renpy.has_label("enter_" + here):
-        call expression "enter_" + here pass (_first)
+    call run_events("enter")            # 진입 이벤트 (core/events.rpy, on="enter")
     jump main_loop
 
 
@@ -191,6 +214,10 @@ transform npc_look_up:
     alpha 0.0
     pause 0.6
     linear 0.3 alpha 1.0
+
+## 대화 장면 배경 흐림 (원작은 흐린 배경 그림을 따로 저장, 여기서는 실행 중에)
+transform dialogue_blur:
+    blur 6
 
 transform npc_spot(x):
     xcenter x yalign 1.0

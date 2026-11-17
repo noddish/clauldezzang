@@ -54,13 +54,13 @@ python3 tools/balance_sim.py 5000   # 밸런스 시뮬레이터 → 결과는 do
 
 | 폴더 | 내용 |
 |---|---|
-| `game/core/` | 설정, 데이터 로더, 시간, 장소·메인 루프, 잠김 규칙, 퀘스트 머신, 신뢰도 |
-| `game/locations/` | 장소 트리·물건 목록(`world.rpy`), 진입 이벤트·물건 클릭(`events.rpy`) |
+| `game/core/` | 설정, 데이터 로더, 시간, 장소·메인 루프·대화 배경(`location.rpy`), 이벤트 등록부(`events.rpy`), 잠김 규칙, 퀘스트 머신, 신뢰도 |
+| `game/locations/<장소>/` | 장소 1곳 = 파일 1개: 등록(`place`), 클릭할 물건, 그 장소의 인물 자리, 물건 클릭 대사, 그 장소 이벤트. 장소 트리는 `map/map.rpy` |
 | `game/rpg/` | 파티, 전투 화면·연출, 소지품·장비 화면, 상점 |
 | `game/python-packages/mhrpg/` | 전투·성장 계산 엔진 (순수 파이썬 — 게임과 시뮬레이터가 같이 씀) |
 | `game/ui/` | 모션(ATL), HUD |
-| `game/characters/` | 루비 그림, NPC 임시 그림(`npcs.rpy`), 대화(`talk.rpy`), 주인공 |
-| `game/story/` | 1일차 도입, 퀘스트 단계·NPC 위치표(`quests.rpy`) |
+| `game/characters/<인물>/` | 인물 1명 = 폴더 1개: 그림(`sprite.rpy`), 퀘스트 머신·위치표(`quest.rpy`), 대화(`talk.rpy`). 주인공은 `player/` (혼잣말 때 자동 등장) |
+| `game/story/` | 1일차 도입, 메인 퀘스트(`main_quest.rpy`), 3일차 감사(`day3.rpy`) |
 | `game/data/` | 아이템·스킬·적·조우표·상점·레벨업 표 (JSON) |
 | `game/dev/` | 자동 검사(`autotest.rpy`), 자동 플레이어(`autodrive.rpy`) |
 | `tools/` | 자동 검사 실행, 엔진 테스트, 밸런스 시뮬레이터, 그림 가공(`art_pipeline.py`), 클릭 모양(`art_objects.json`) |

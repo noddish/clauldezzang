@@ -15,8 +15,10 @@ label start:
 
     think "삼촌… 길드를 물려준다더니, 이건 거의 폐가잖아."
 
+    scene expression blurred("bg_guild_front_day")
     show kai at stage_left
     show ruby surprised at stage_right, slide_in_right
+    with dissolve
     r "어? 혹시… 새 길드장님?!"
 
     show ruby happy at stage_right, double_hop

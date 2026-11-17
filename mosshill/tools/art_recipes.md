@@ -100,3 +100,45 @@
 | 광장 핍 (술통 포함) | `img_mwk6owfupJ7J4qRB` / `img_mwk6zn45hSa75y0G` |
 
 이미지 서버 제한: **하루 100회, 분당 6회**. 여러 장은 6장씩 나눠 보낸다.
+
+## 6. 저녁·밤 배경 — 다시 그리기 계획 (아직 실행하지 않음)
+
+**지금:** 밤 그림 = 낮 그림을 어둡고 푸르게 보정한 것. 창문 햇빛 자국이 그대로 남고 등불이 켜지지 않아 "어두운 낮"처럼 보인다.
+**원작:** 낮·저녁·밤을 따로 그렸다 (저녁 = 어둡고 창문·등불 켜짐 / 밤 = 불 꺼짐). 274 / 118 / 238장. 저녁 그림이 없으면 밤 → 낮 순서로 대신 쓴다.
+**계획:** AI 로 **저녁(불 켜짐)** 만 다시 그리고, **밤은 저녁 그림에서 계산**으로 만든다 (돈 안 듦).
+
+| 장소 | 저녁(시간대 2) | 밤(시간대 3) | 이유 |
+|---|---|---|---|
+| 길드 홀 · 내 방 · 부엌 · 광장 · 선술집 · 지도 | 다시 그림 | 저녁에서 계산 | 저녁·밤 모두 들어갈 수 있음 |
+| 숲 | 다시 그림 | 없음 | 밤에는 잠김 |
+| 잡화점 | 없음 | 없음 | 저녁부터 문 닫음 → 지금 `bg_shop_night` 도 지울 수 있음 |
+| 동굴 1·2 · 길드 앞 | 없음 | 없음 | 동굴은 시간과 무관, 길드 앞은 도입(낮)에만 |
+
+**견본 (2번 규칙의 '배경' 줄 + 1번에 그 장소 낮 그림)**
+1. 그 장소 낮 배경 (고칠 대상 — 구도·물건 위치를 그대로 지켜야 클릭 모양이 맞는다)
+2. 길드 홀 배경 `img_mwjzz6ejUwIEo3A9` (배경 화풍)
+3. 카이 `img_mwk04ey99961j7GF` (선 굵기·색칠 방식)
+
+**프롬프트 (영어, 장소마다 [CHANGE] 의 불빛 목록만 바꾼다)**
+```
+[ROLES] The FIRST image is the scene to edit. The SECOND image is the background art-style reference.
+The THIRD image is the line and colouring style reference.
+[KEEP] Keep EXACTLY the same: camera, framing, perspective, every piece of furniture and every object
+in the same position and size, the same doors, windows, shelves and props. Do not add or remove anything.
+[CHANGE] Change ONLY the lighting to early evening after sunset: the windows show a deep blue-violet dusk sky;
+remove every patch of sunlight on the floor, walls and tables; light every lamp, candle, lantern and the
+hearth (<장소별 불빛 목록>) with warm orange light, soft glow around each light and gentle warm light pools
+on nearby surfaces; the rest of the room falls into cool blue-grey shadow.
+[STYLE] Match the SECOND image: (화풍 문단 중 배경에 해당하는 부분 — 얇은 진한 외곽선, 단순한 형태, 2~3단 부드러운 음영)
+[AVOID] no new objects, no people, no change of layout, no photorealism, no lens flare, no bloom haze over the whole image
+```
+
+**가공 (`art_pipeline.py bg` 에 추가할 것)**
+- 저녁 그림을 낮 그림에 **자동으로 위치·크기 맞춤** (표정 단계와 같은 방식). 어긋남이 4px 를 넘으면 `확인 필요` → 클릭 모양이 안 맞을 위험.
+- 밤 = 저녁 그림을 어둡고 푸르게 + **밝은 곳(불빛)은 그대로 둔다** (밝기 기준으로 섞기). 그래서 등불만 켜진 늦은 밤이 된다.
+- 장소 안 인물(`scene`)도 저녁판을 만든다: AI 를 다시 쓰지 않고, 인물 주변 저녁 배경의 색감을 옮긴다 (지금 낮 장면에서 하는 색 옮기기와 같은 함수).
+
+**코드 (`location_bg`)**: 시간대 2 → `_evening`, 3 → `_night`, 없으면 `_night` → `_evening` → `_day` 순서로 대신 (원작과 같은 대체 사슬).
+인물 색조(`light_matrix`)도 저녁은 따뜻하게, 밤은 푸르게 나눈다.
+
+**비용:** 7장 × 약 0.07달러 + 다시 그리기 여유 → **약 0.9달러**, 서버 호출 약 12번 (하루 100번 한도 안).

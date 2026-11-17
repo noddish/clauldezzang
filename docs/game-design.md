@@ -92,7 +92,10 @@ L_map (마을 지도)
 | `bg_cave_2` | 두꺼비 왕의 방 | 보스 | 하나 |
 | `map_town` | 마을 지도 | 장소 아이콘 5개 | 낮/밤 |
 
-- 밤 배경은 낮 그림을 보정해서 만든다 (데모에서 검증됨). 단 **창문·촛불이 있는 곳**은 불빛 덧그림 조각 1장을 추가한다.
+- 지금 밤 배경은 낮 그림을 보정한 것 (창문 햇빛 자국이 남고 등불이 꺼져 있음).
+  **계획 (아직 안 함):** 저녁(시간대 2) = 낮 그림을 견본으로 AI 가 "등불·촛불 켜진 해 질 녘"으로 다시 그림 (7곳, 약 0.9달러),
+  밤(시간대 3) = 저녁 그림에서 불빛만 남기고 어둡게 계산. 저녁 그림은 낮 그림에 위치를 자동으로 맞춰 클릭 모양이 어긋나지 않게 한다.
+  자세한 견본·프롬프트는 `mosshill/tools/art_recipes.md` 6장, 원작과의 비교는 `docs/summertime-saga-structure-analysis.md` 9장.
 - 장소에 NPC 가 있으면 대화용 큰 그림 대신 **그 장소에서 뭔가 하는 모습**을 배경 속에 그린다 (원작 방식). 자세뿐 아니라 얼굴 각도·시선도 장면마다 정한다: 손님을 맞는 사람은 플레이어(카메라)를, 자기 일에 빠진 사람은 손에 든 것을 본다 (`tools/art_scenes.json`). 클릭하면 대화 장면에서 큰 그림이 나온다.
 - 클릭할 물건은 모양 마스크 PNG (`tools/art_objects.json` 다각형 → `tools/art_pipeline.py object`). 마우스를 올리면 게임이 지금 배경을 그 모양으로 잘라 밝게 그린다 → 낮/밤 조각을 따로 둘 필요가 없다.
 
@@ -186,12 +189,12 @@ data/levels.json      레벨업 표
 ```
 mosshill/                         ← 새 Ren'Py 프로젝트 (앞 데모와 별개)
 ├─ game/
-│  ├─ core/        time.rpy · location.rpy · quest.rpy · bond.rpy · save.rpy · actions.rpy
-│  ├─ rpg/         stats.rpy · battle.rpy · battle_screens.rpy · inventory.rpy · shop.rpy
-│  ├─ ui/          hud.rpy · menus.rpy · popup.rpy · styles.rpy
-│  ├─ locations/<장소>/   screen.rpy · enter.rpy · lock.rpy
-│  ├─ characters/<인물>/  sprite.rpy · quest.rpy · talk.rpy
-│  ├─ story/       day1.rpy · day2.rpy · day3.rpy
+│  ├─ core/        time.rpy · location.rpy · events.rpy · locks.rpy · quest.rpy · bond.rpy · data.rpy
+│  ├─ rpg/         party.rpy · battle.rpy · battle_screens.rpy · inventory.rpy · inventory_screen.rpy · shop.rpy
+│  ├─ ui/          hud.rpy · motions.rpy
+│  ├─ locations/<장소>/<장소>.rpy   place() · 물건 목록 · 인물 자리 · 물건 클릭 대사 · event() 등록
+│  ├─ characters/<인물>/  sprite.rpy · quest.rpy · talk.rpy   (주인공은 player/player.rpy)
+│  ├─ story/       day1.rpy · main_quest.rpy · day3.rpy
 │  ├─ data/        *.json
 │  ├─ images/
 │  │  ├─ characters/<인물>/   <인물>_body.png · <인물>_face_<표정>.png
@@ -207,7 +210,10 @@ mosshill/                         ← 새 Ren'Py 프로젝트 (앞 데모와 별
 ```
 
 **규칙**
-- 캐릭터 1명 = 폴더 1개, 장소 1곳 = 폴더 1개 (원작 방식).
+- 캐릭터 1명 = 폴더 1개, 장소 1곳 = 폴더 1개 (원작은 캐릭터만 폴더 — 장소까지 넓힘).
+- 이벤트는 `event(id, label, at=, on=, when=, once=, priority=)` 로 등록 (`core/events.rpy`). 자동 검사가 label·장소가 실제로 있는지 확인한다.
+- 대화 장면은 `scene expression location_backdrop(here, blur=True, without="<인물>")` → 지금 장소를 흐리게, 대화 상대만 빼고. 카이는 왼쪽, 상대는 오른쪽에서 마주 본다.
+- 혼잣말(`think`)·카이 대사(`me`)는 카이가 자동으로 왼쪽에 나온다 (따로 `show kai` 안 써도 됨).
 - label 이름은 `<장소 또는 인물>_<내용>` (예: `tavern_enter`, `ruby_talk_morning`).
 - 화면에 보이는 모든 글자는 `story/` 와 `characters/*/talk.rpy` 에만 둔다 → 나중에 번역하기 쉽다.
 
@@ -227,7 +233,7 @@ mosshill/                         ← 새 Ren'Py 프로젝트 (앞 데모와 별
 | 표정 | 몸과 같은 캔버스 | 표정만 바꿔 다시 그린 뒤, 원본과 위치·크기를 맞추고 **달라진 부분만** 오려냄 |
 | 적 | 투명 PNG, 키 160~380 | 여백 자르고 바닥 정렬 (보스가 가장 큼) |
 | 아이콘 | 96×96 PNG | 4×4 한 장으로 생성 → 칸별로 자름 |
-| 물건 마스크 | 물건 테두리 상자 크기 | 다각형에서 생성, 크기 = world.rpy rect (자동 검사) |
+| 물건 마스크 | 물건 테두리 상자 크기 | 다각형에서 생성, 크기 = 장소 파일의 rect (자동 검사) |
 
 ### 생성 순서 (일관성 유지)
 1. 길드 홀 배경을 먼저 만들어 **배경 화풍 기준**으로 삼는다.

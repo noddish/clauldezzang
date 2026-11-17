@@ -89,6 +89,36 @@ init python:
         return out
 
 
+init python:
+    def script_problems():
+        """연결 검사: 등록한 이벤트·물건·인물·이동이 실제 label·장소를 가리키는가.
+        원작은 이런 검사가 없어 오타 하나가 게임 진행을 멈추게 할 수 있었다."""
+        out = []
+        for e in EVENTS:
+            if not renpy.has_label(e.label):
+                out.append("이벤트 %s 의 label %s 없음" % (e.id, e.label))
+            if e.at is not None and e.at not in LOC:
+                out.append("이벤트 %s 의 장소 %s 없음" % (e.id, e.at))
+        for lid, objs in OBJECTS.items():
+            if lid not in LOC:
+                out.append("물건 목록의 장소 %s 가 place() 로 등록되지 않음" % lid)
+            for o in objs:
+                if isinstance(o.action, Interact) and not renpy.has_label(o.action.label):
+                    out.append("물건 %s/%s 의 label %s 없음" % (lid, o.id, o.action.label))
+                if isinstance(o.action, MoveTo) and o.action.loc_id not in LOC:
+                    out.append("물건 %s/%s 의 이동 장소 %s 없음" % (lid, o.id, o.action.loc_id))
+        for lid, spots in NPC_SPOTS.items():
+            for mid in spots:
+                if not renpy.has_label(mid + "_talk"):
+                    out.append("인물 %s 의 대화 label %s_talk 없음" % (mid, mid))
+                if mid not in CHAR_NAMES:
+                    out.append("인물 %s 의 이름이 CHAR_NAMES 에 없음" % mid)
+        for lid, loc in LOC.items():
+            if loc.parent is not None and loc.parent not in LOC:
+                out.append("장소 %s 의 부모 %s 없음" % (lid, loc.parent))
+        return out
+
+
 label autotest_m0:
     python:
         problems = DATA.check()
@@ -98,6 +128,10 @@ label autotest_m0:
         autotest_log("items=%d skills=%d enemies=%d" % (len(DATA.items), len(DATA.skills), len(DATA.enemies)))
         problems = asset_problems()
         autotest_log("asset check: %d problem(s)" % len(problems))
+        for p in problems:
+            autotest_log("  FAIL  " + p)
+        problems = script_problems()
+        autotest_log("script check: %d problem(s) — 이벤트 %d개, 장소 %d곳" % (len(problems), len(EVENTS), len(LOC)))
         for p in problems:
             autotest_log("  FAIL  " + p)
 
@@ -183,7 +217,9 @@ init python:
         ("click", "tavern"),
         ("expect", INNPC % "martha", "선술집에 마르타"),
         ("shot", "m1_04_tavern"),
-        ("shot_say", "m1_05_martha_say"),
+        ("shot_say", "m1_04b_board_think"),             # 혼잣말 — 카이가 왼쪽에 나오고 마르타는 그대로
+        ("click", "board"),
+        ("shot_say", "m1_05_martha_say"),               # 대화 — 흐린 배경, 카이 왼쪽 / 마르타 오른쪽
         ("talk", "martha"),
         ("expect", "MAIN.is_state('forest')", "의뢰 수락 → 메인=forest"),
         ("click", "exit"), ("click", "forest"),
