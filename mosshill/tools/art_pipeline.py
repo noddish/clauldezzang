@@ -7,7 +7,7 @@
     표정    <이름>_<표정>.png     같은 그림에서 표정만 바꾼 것
     적      <종류>.png            투명 배경
     아이템  items.png             4x4 칸
-    장소 인물 scene_<장소>_<인물>_<busy|look>.png  배경 원본에 인물을 그려 넣은 것 (하던 일 / 앞을 봄)
+    장소 인물 pose_<장소>_<인물>_<busy|look>.png  인물만 단독으로 크게 (하던 일 / 앞을 봄)
 
     python3 tools/art_pipeline.py RAW all        # 전부
     python3 tools/art_pipeline.py RAW bg         # 배경만 (bg, sprite, face, enemy, icon, object, scene)
@@ -274,68 +274,153 @@ def do_object(raw):
             print("object %-14s %-8s rect=%s" % (loc, oid, (box[0], box[1], box[2] - box[0], box[3] - box[1])))
 
 
-## ---------------------------------------------------------------- 장소 안 인물
-## tools/art_scenes.json: {장소: {인물: {"box": [x0,y0,x1,y1], "shape": 다각형, ...}}}
-## RAW/scene_<장소>_<인물>_<busy|look>.png = 배경 원본에 인물을 그려 넣은 그림 (같은 구도) 두 장.
-##   busy: 하던 일을 보고 있음 / look: 카이가 들어와서 앞(카메라)을 봄 — 들어갈 때 busy → look 으로 바뀐다.
-## 원래 배경과 다른 곳 = 인물 → 화면 크기(1280x720) 투명 PNG 로 저장 (위치 정보가 따로 필요 없다).
-## 두 장은 '둘 중 하나라도 다른 곳'(합친 모양)으로 똑같이 오린다 → 겹쳐서 서서히 바꿔도 비치지 않는다.
-## 식탁·계산대 뒤에 선 인물은 앞의 가구가 배경에 그대로 있으니 가려지는 것도 저절로 맞는다.
+## ---------------------------------------------------------------- 장소 안 인물 (두 방식을 합친 것)
+## 1) AI 에게 배경에 인물을 함께 그리게 하면 크기·비율·자세·조명이 자연스럽지만, 인물이 몇십 px 로 작게 그려져
+##    얼굴·인상이 뭉개진다.
+## 2) 원작(SS)처럼 인물만 단독으로 크게 그려 얹으면 얼굴은 또렷하지만, 크기·자세를 따로 정하면 어색하다.
+## → 먼저 1) 로 장면을 그리고, 그 장면을 견본으로 '같은 자세·비율의 인물만' 크게 다시 그린다(2).
+##   그 큰 그림을 1) 의 인물 실루엣에 자동으로 겹쳐 맞추고(배율·위치), 1) 의 인물 색감을 옮겨 얹는다.
+##   외곽선은 두르지 않는다 (원작처럼 굵게 두르면 튀었다).
+##
+## RAW/<장소>.png                    배경 원본 (인물 없음)
+## RAW/scene_<장소>_<인물>_busy.png  1) 배경에 인물을 함께 그린 그림 — 크기·위치·색감의 기준
+## RAW/pose_<장소>_<인물>_busy.png   2) 1) 을 견본으로 인물만 크게 (1024x1536 투명) — 하던 일을 보는 모습
+## RAW/pose_<장소>_<인물>_look.png   2) 에서 눈·입만 바꿔 앞(카메라)을 보는 모습
+## tools/art_scenes.json 의 place:
+##   ref       1) 에서 인물이 있는 곳 다각형 (화면 1280x720 좌표) — 이 안에서 배경과 다른 곳 = 인물 실루엣
+##   cut       이 y 아래는 가구(바·식탁·계산대) 뒤라 안 보임 (없으면 null) — 가구 윗면의 '뒤쪽' 끝.
+##             앞쪽 모서리에서 자르면 몸이 가구 윗면을 덮어 '가구 위에 올려 놓은' 것처럼 보인다
+##   show      cut 아래라도 보이는 곳 다각형 목록 (가구 위에 올린 손·도구) (선택)
+##   hide      앞의 물건에 가려지는 곳 다각형 목록 (선택)
+##   shadow    true 면 발밑 그림자 (바닥에 놓인 전신)
+##   fit_cut   맞출 때 비교를 멈출 y (1) 그림에서 가구에 가려진 선이 cut 과 다를 때, 기본은 cut)
+##   fit_upper 실루엣 위쪽 몇 %로 맞출지 (기본 0.6). 단독 그림의 머리 비율이 1) 과 다르면 줄여서 머리 위주로 맞춘다
+## 결과: scene_<장소>_<인물>_<busy|look>_<day|night>.png (화면 크기, 인물만 불투명)
+##       mask_scene_<장소>_<인물>.png (클릭 모양 = 인물 실루엣)
 SCENE_STATES = ("busy", "look")
+COLOR_AMOUNT = 0.6
 
 
-def largest_blob(m):
-    """참/거짓 배열에서 가장 큰 덩어리만 남긴다 (4방향 연결)"""
-    h, w = m.shape
-    seen = np.zeros_like(m, dtype=bool)
-    best = []
-    for y0, x0 in zip(*np.nonzero(m)):
-        if seen[y0, x0]:
-            continue
-        stack, blob = [(y0, x0)], []
-        seen[y0, x0] = True
-        while stack:
-            y, x = stack.pop()
-            blob.append((y, x))
-            for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
-                if 0 <= ny < h and 0 <= nx < w and m[ny, nx] and not seen[ny, nx]:
-                    seen[ny, nx] = True
-                    stack.append((ny, nx))
-        if len(blob) > len(best):
-            best = blob
-    out = np.zeros_like(m, dtype=bool)
-    if best:
-        ys, xs = zip(*best)
-        out[list(ys), list(xs)] = True
+def screen_of(path):
+    """AI 원본(1536x1024) → 화면(1280x720), 배경과 같은 자르기"""
+    return Image.open(path).convert("RGB").crop((0, 80, 1536, 944)).resize(SCREEN, Image.LANCZOS)
+
+
+def ref_silhouette(bg, sc, poly):
+    """1) 그림에서 인물 실루엣: 다각형(조금 넓힘) 안에서 배경과 확실히 다른 곳"""
+    area = Image.new("L", SCREEN, 0)
+    ImageDraw.Draw(area).polygon([tuple(p) for p in poly], fill=255)
+    area = np.asarray(area.filter(ImageFilter.MaxFilter(9))) > 0
+    d = np.asarray(ImageChops.difference(bg, sc).filter(ImageFilter.GaussianBlur(1.5))).max(axis=2) > 30
+    m = Image.fromarray(((d & area) * 255).astype(np.uint8))
+    m = m.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.MaxFilter(3))     # 잡티
+    m = m.filter(ImageFilter.MaxFilter(7)).filter(ImageFilter.MinFilter(7))     # 틈
+    return np.asarray(m) > 0
+
+
+def fit_to(sil, char, cut, upper=0.6):
+    """큰 인물 그림을 실루엣 sil 에 겹쳐 맞추는 배율 k, 위치 (ox, oy) — 겹치는 비율(IoU)이 가장 큰 값.
+    크기 느낌은 머리·상체가 정하므로 실루엣 위쪽 upper 비율만 비교한다 (팔·소품은 그림마다 조금씩 다르다).
+    cut 아래는 1) 에서 가구에 가려졌으므로 비교하지 않는다."""
+    A = char.getchannel("A")
+    x0, y0, x1, y1 = A.point(lambda v: 255 if v > 16 else 0).getbbox()
+    ys, xs = np.nonzero(sil)
+    sy0, sy1, sx0, sx1 = ys.min(), ys.max(), xs.min(), xs.max()
+    limit = min(cut if cut is not None else SCREEN[1], int(sy0 + (sy1 - sy0) * upper))
+    k0 = (sy1 - sy0) / (y1 - y0) if cut is None else (sx1 - sx0) / (x1 - x0)
+    pad = 120
+    wx0, wy0 = max(0, sx0 - pad), max(0, sy0 - pad)                 # 비교는 실루엣 주변 창 안에서만
+    wx1, wy1 = min(SCREEN[0], sx1 + pad), limit
+    ref_full = sil[wy0:wy1, wx0:wx1]
+    cache = {}
+
+    def iou(k, ox, oy, step):
+        key = (round(k, 5), step)
+        if key not in cache:
+            cache[key] = np.asarray(A.resize((max(1, round(A.width * k / step)), max(1, round(A.height * k / step))))) > 128
+        small = cache[key]
+        ref = ref_full[::step, ::step]
+        canvas = np.zeros(ref.shape, bool)
+        px, py = round((ox - wx0) / step), round((oy - wy0) / step)
+        h, w = small.shape
+        cx0, cy0, cx1, cy1 = max(0, px), max(0, py), min(canvas.shape[1], px + w), min(canvas.shape[0], py + h)
+        if cx1 <= cx0 or cy1 <= cy0:
+            return 0
+        canvas[cy0:cy1, cx0:cx1] = small[cy0 - py:cy1 - py, cx0 - px:cx1 - px]
+        return (canvas & ref).sum() / max(1, (canvas | ref).sum())
+
+    best = (0, k0, 0, 0)
+    for k in np.arange(0.7, 1.31, 0.02) * k0:
+        ox0 = (sx0 + sx1) / 2 - (x0 + x1) / 2 * k
+        oy0 = sy0 - y0 * k
+        for dy in range(-40, 41, 4):
+            for dx in range(-60, 61, 4):
+                v = iou(k, ox0 + dx, oy0 + dy, 2)
+                if v > best[0]:
+                    best = (v, k, ox0 + dx, oy0 + dy)
+    _, kb, oxb, oyb = best
+    for k in (kb * 0.99, kb, kb * 1.01):
+        for dy in range(-3, 4):
+            for dx in range(-3, 4):
+                v = iou(k, oxb + dx, oyb + dy, 1)
+                if v > best[0]:
+                    best = (v, k, oxb + dx, oyb + dy)
+    return best
+
+
+def look_from_busy(busy, look):
+    """look 그림에서 머리 쪽(테두리 상자 위 45%)의 달라진 곳만 busy 에 합친다 → 바뀔 때 몸이 흔들리지 않는다"""
+    x0, y0, x1, y1 = busy.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
+    head = (x0, y0, x1, y0 + int((y1 - y0) * 0.45))
+    d, s, dx, dy = register(busy, look, (head[0], head[1], head[2], head[3] + 60))
+    look = place(look, s, dx, dy)
+    area = Image.new("L", busy.size, 0)
+    ImageDraw.Draw(area).rectangle(head, fill=255)
+    area = area.filter(ImageFilter.GaussianBlur(10))
+    diff = ImageChops.difference(gray_on_white(busy), gray_on_white(look)).filter(ImageFilter.GaussianBlur(2))
+    mask = ImageChops.multiply(diff.point(lambda v: 255 if v > 14 else 0).filter(ImageFilter.MaxFilter(15)), area)
+    piece = look.copy()
+    piece.putalpha(ImageChops.multiply(mask.filter(ImageFilter.GaussianBlur(5)), look.getchannel("A")))
+    out = busy.copy()
+    out.alpha_composite(piece)
     return out
 
 
-def match_colors(sc, bg, box):
-    """AI 가 인물을 그려 넣으면서 방 전체 색조를 살짝 바꾸는 일이 있다 (바닥에 네모난 경계가 생김).
-    인물 범위(box) 바깥은 원래 배경과 같아야 하므로, 그 부분으로 색 보정식(채널별 a*x+b)을 구해 그림 전체에 적용한다."""
-    a = np.asarray(sc, np.float32)
-    b = np.asarray(bg, np.float32)
-    x0, y0, x1, y1 = box
-    outside = np.ones(a.shape[:2], bool)
-    outside[max(0, y0 - 30):y1 + 30, max(0, x0 - 30):x1 + 30] = False
-    out = a.copy()
+def place_char(char, k, ox, oy, pl, color):
+    """큰 인물 그림 → 화면 크기 레이어 (줄이기, 방 색감, 발밑 그림자, 가려지는 곳 잘라내기)"""
+    x0, y0, x1, y1 = char.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
+    small = char.resize((round(char.width * k), round(char.height * k)), Image.LANCZOS)
+    layer = Image.new("RGBA", SCREEN, (0, 0, 0, 0))
+    layer.alpha_composite(small, (round(ox), round(oy)))
+    ## 방 색감: 인물 색 분포(평균·표준편차)를 1) 의 인물 색 분포 쪽으로 COLOR_AMOUNT 만큼 옮긴다
+    arr = np.asarray(layer).astype(np.float32)
+    solid = arr[..., 3] > 128
     for c in range(3):
-        gain, offset = np.polyfit(a[..., c][outside], b[..., c][outside], 1)
-        out[..., c] = a[..., c] * gain + offset
-    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
-
-
-def changed_mask(bg, sc, box):
-    """배경과 다른 곳: 색 차이 → 잡티 제거 → 틈 메우기 → 가장 큰 덩어리 → 속 구멍 채우기 (box 크기 L 그림)"""
-    d = np.asarray(ImageChops.difference(bg, sc).filter(ImageFilter.GaussianBlur(1.5))).max(axis=2)
-    m = Image.fromarray(((d > 24) * 255).astype(np.uint8)).crop(box)
-    m = m.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.MaxFilter(3))      # 잡티
-    m = m.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.MinFilter(9))      # 틈
-    m = Image.fromarray((largest_blob(np.asarray(m) > 0) * 255).astype(np.uint8))
-    pad = Image.new("L", (m.width + 2, m.height + 2), 0)                          # 구멍: 테두리에서 못 닿는 빈칸
-    pad.paste(m, (1, 1))
-    ImageDraw.floodfill(pad, (0, 0), 128)
-    return Image.fromarray(np.where(np.asarray(pad)[1:-1, 1:-1] == 128, 0, 255).astype(np.uint8))
+        src = arr[..., c][solid]
+        moved = (arr[..., c] - src.mean()) * (color[1][c] / (src.std() + 1e-6)) + color[0][c]
+        arr[..., c] = np.clip(arr[..., c] * (1 - COLOR_AMOUNT) + moved * COLOR_AMOUNT, 0, 255)
+    layer = Image.fromarray(arr.astype(np.uint8), "RGBA")
+    layer.putalpha(layer.getchannel("A").filter(ImageFilter.GaussianBlur(0.6)))   # 경계만 살짝 부드럽게
+    ## 가구 뒤: cut 아래와 hide 다각형 안은 투명
+    keep = Image.new("L", SCREEN, 255)
+    dr = ImageDraw.Draw(keep)
+    if pl.get("cut") is not None:
+        dr.rectangle((0, pl["cut"], SCREEN[0], SCREEN[1]), fill=0)
+    for poly in pl.get("show", []):                 # cut 아래라도 보이는 곳 (식탁 위에 올린 손 등)
+        dr.polygon([tuple(p) for p in poly], fill=255)
+    for poly in pl.get("hide", []):
+        dr.polygon([tuple(p) for p in poly], fill=0)
+    layer.putalpha(ImageChops.multiply(layer.getchannel("A"), keep))
+    full = Image.new("RGBA", SCREEN, (0, 0, 0, 0))
+    if pl.get("shadow"):
+        fx, fy, w = ox + (x0 + x1) / 2 * k, oy + y1 * k, (x1 - x0) * k * 0.75
+        sh = Image.new("L", SCREEN, 0)
+        ImageDraw.Draw(sh).ellipse((fx - w / 2, fy - 9, fx + w / 2, fy + 7), fill=110)
+        shadow = Image.new("RGBA", SCREEN, (20, 12, 6, 0))
+        shadow.putalpha(sh.filter(ImageFilter.GaussianBlur(6)))
+        full.alpha_composite(shadow)
+    full.alpha_composite(layer)
+    return full
 
 
 def do_scene(raw):
@@ -346,34 +431,31 @@ def do_scene(raw):
     for loc, chars in spec.items():
         if loc.startswith("_"):
             continue
-        bg = Image.open(os.path.join(raw, loc + ".png")).convert("RGB").crop((0, 80, 1536, 944)).resize(SCREEN, Image.LANCZOS)
         for who, s in chars.items():
-            box = tuple(s["box"])
-            scenes = {}
-            union = None
-            for st in SCENE_STATES:
-                sc = Image.open(os.path.join(raw, "scene_%s_%s_%s.png" % (loc, who, st))).convert("RGB")
-                scenes[st] = match_colors(sc.crop((0, 80, 1536, 944)).resize(SCREEN, Image.LANCZOS), bg, box)
-                m = changed_mask(bg, scenes[st], box)
-                union = m if union is None else ImageChops.lighter(union, m)
-            alpha = Image.new("L", SCREEN, 0)
-            alpha.paste(union.filter(ImageFilter.GaussianBlur(1.2)), box[:2])
-            for st, sc in scenes.items():
-                for tod, img in (("day", sc), ("night", night_filter(sc))):
-                    piece = Image.new("RGBA", SCREEN, (0, 0, 0, 0))
-                    piece.paste(img, (0, 0), alpha)
-                    piece.putalpha(alpha)
+            pose = {st: Image.open(os.path.join(raw, "pose_%s_%s_%s.png" % (loc, who, st))).convert("RGBA")
+                    for st in SCENE_STATES}
+            pose["look"] = look_from_busy(pose["busy"], pose["look"])
+            pl = s["place"]
+            bg = screen_of(os.path.join(raw, loc + ".png"))
+            ref = screen_of(os.path.join(raw, "scene_%s_%s_busy.png" % (loc, who)))
+            sil = ref_silhouette(bg, ref, pl["ref"])
+            fit, k, ox, oy = fit_to(sil, pose["busy"], pl.get("fit_cut", pl.get("cut")), pl.get("fit_upper", 0.6))
+            px = np.asarray(ref).astype(np.float32)[sil]
+            color = (px.mean(axis=0), px.std(axis=0))
+            layers = {st: place_char(pose[st], k, ox, oy, pl, color) for st in SCENE_STATES}
+            for st, layer in layers.items():
+                rgb = layer.convert("RGB")
+                for tod, img in (("day", rgb), ("night", night_filter(rgb))):
+                    piece = img.convert("RGBA")
+                    piece.putalpha(layer.getchannel("A"))
                     piece.save(os.path.join(out, "scene_%s_%s_%s_%s.png" % (loc, who, st, tod)), optimize=True)
-            ## 클릭·하이라이트 모양: 인물 윤곽 다각형 (화면 크기 1비트 PNG)
-            shape = Image.new("P", SCREEN, 0)
+            ## 클릭 모양 = 두 자세 실루엣을 합친 것 (1비트)
+            sil = ImageChops.lighter(layers["busy"].getchannel("A"), layers["look"].getchannel("A"))
+            shape = sil.point(lambda v: 1 if v > 150 else 0).convert("P")      # 그림자(옅음)는 빼고 인물만
             shape.putpalette([0, 0, 0, 255, 255, 255])
-            ImageDraw.Draw(shape).polygon([tuple(p) for p in s["shape"]], fill=1)
             shape.save(os.path.join(out, "mask_scene_%s_%s.png" % (loc, who)), transparency=0, optimize=True)
-            x0, y0, x1, y1 = box
-            outside = np.asarray(ImageChops.difference(scenes["busy"], scenes["look"]).convert("L")).astype(np.float32)
-            outside[y0:y1, x0:x1] = np.nan
-            print("scene %-14s %-7s 인물 영역=%s  두 장면 상자 밖 차이=%.1f (작을수록 구도가 그대로)" % (
-                loc, who, alpha.getbbox(), np.nanmean(outside)))
+            print("scene %-14s %-7s 겹침(IoU)=%.2f 배율=%.3f 화면 위치=%s" % (
+                loc, who, fit, k, ImageChops.lighter(layers["busy"].getchannel("A"), layers["look"].getchannel("A")).getbbox()))
 
 
 STEPS = {"bg": do_bg, "sprite": do_sprite, "face": do_face, "enemy": do_enemy,
