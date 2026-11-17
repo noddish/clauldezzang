@@ -86,27 +86,30 @@ screen inventory_view():
                     $ s = member_stats(w)
                     $ hp, mhp = member_hp(w)
                     $ mp, mmp = member_mp(w)
-                    button:
-                        action SetScreenVariable("who", w)
-                        selected who == w
-                        background Frame(Solid("#ffffff10"), 4, 4)
-                        selected_background Frame(Solid("#ffd38a30"), 4, 4)
-                        hover_background Frame(Solid("#ffffff20"), 4, 4)
+                    frame:
+                        background Frame(Solid("#ffd38a30" if who == w else "#ffffff10"), 4, 4)
                         padding (12, 10)
                         xfill True
                         vbox:
                             spacing 4
-                            text "%s  Lv %d  (경험치 %d)" % (member_name(w), party[w]["lv"], party[w]["exp"]) size 22 color "#ffffff"
+                            hbox:
+                                spacing 12
+                                text "%s  Lv %d" % (member_name(w), party[w]["lv"]) size 22 color "#ffffff"
+                                text "경험치 %d" % party[w]["exp"] size 16 color "#aaaaaa" yalign 0.5
+                                if who != w:
+                                    textbutton "선택" action SetScreenVariable("who", w) text_size 18
+                                else:
+                                    text "선택됨" size 18 color "#ffd38a" yalign 0.5
                             text "HP %d/%d   MP %d/%d" % (hp, mhp, mp, mmp) size 18 color "#bcd7ff"
                             text "공격 %d   방어 %d   속도 %d" % (s["atk"], s["def"], s["spd"]) size 18 color "#ffffff"
                             for slot in ("weapon", "armor", "accessory"):
                                 $ eq = party[w]["equip"].get(slot)
                                 hbox:
                                     spacing 8
-                                    text "%s: %s" % (SLOT_NAMES[slot], DATA.items[eq]["name"] if eq else "없음") size 17 color "#dddddd"
+                                    text "%s: %s" % (SLOT_NAMES[slot], DATA.items[eq]["name"] if eq else "없음") size 17 color "#dddddd" yalign 0.5
                                     if eq:
                                         textbutton "해제" text_size 15 action Function(unequip_item, w, slot)
-                text "선택: %s  — 오른쪽에서 아이템을 누르면 이 사람에게 사용·장착" % member_name(who) size 15 color "#aaaaaa"
+                text "오른쪽에서 '사용'·'장착'을 누르면 선택된 사람에게 적용" size 15 color "#aaaaaa"
 
             ## ---- 아이템
             vbox:

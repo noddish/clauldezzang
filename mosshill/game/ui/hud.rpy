@@ -48,4 +48,4 @@ screen hud():
 ## renpy.notify 기본 위치(왼쪽 위)는 HUD 와 겹치므로 위쪽 가운데로 옮긴다.
 style notify_frame:
     xalign 0.5
-    ypos 16
+    ypos 76            # 전투 메시지(위쪽 가운데) 아래

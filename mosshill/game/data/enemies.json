@@ -93,10 +93,6 @@
   },
   "drops": [
    {
-    "item": "pip_cargo",
-    "rate": 1.0
-   },
-   {
     "item": "hi_potion",
     "rate": 1.0
    }

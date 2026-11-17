@@ -198,11 +198,10 @@ init python:
               ("expect", "party['player']['exp'] > 0 and party['ruby']['exp'] > 0", "숲 전투로 경험치 획득"),
               ("shot_ui", "m2_03_inventory"), ("open", "open_inventory"))
         after(("expect", "MAIN.is_state('cave')", "핍의 의뢰 수락"),
-              ("call", "shop_sell", "pip", "slime_jelly") if False else ("log", "(판매는 m2 에서 생략)"),
               ("shot_battle", "m2_04_battle_boss"))
         after(("expect", "MAIN.is_state('return_cargo') and has_item('pip_cargo') and tod == 2", "두꺼비 왕(임시 전투) 후 짐 획득, 저녁"),
               ("expect", "party['player']['lv'] >= 3 and party['ruby']['lv'] >= 3", "보스 후 둘 다 레벨 3 이상"),
-              ("expect", "has_item('hi_potion') or True", "보스 드롭"))
+              ("expect", "has_item('hi_potion') and inventory.get('pip_cargo', 0) == 1", "보스 드롭 고급 회복약 + 짐은 정확히 1개"))
         return s
 
 label autotest_m2:
@@ -229,3 +228,28 @@ label autotest_m2_lose:
     $ DRIVER.check("here == 'guild_room' and gold == 50", "길드 침대에서 깨어남, 골드 절반")
     $ DRIVER.check("member_hp('player')[0] == member_hp('player')[1] // 2", "HP 절반으로 회복")
     jump autotest_finish
+
+
+## ---------------------------------------------------------------- 화면 점검: 소지품·상점
+label autotest_ui:
+    python:
+        battle_speed = 0.15
+        MAIN._enter("board")
+        here = "guild_hall"
+        for _i in ("potion", "potion", "ether", "iron_sword", "lucky_charm", "slime_jelly", "flint"):
+            add_item(_i, notify=False)
+        party["player"]["hp"] = 30
+        DRIVER.load([
+            ("shot_ui", "ui_01_inventory"), ("open", "open_inventory"),
+            ("call", "equip_item", "player", "iron_sword"),
+            ("expect", "party['player']['equip']['weapon'] == 'iron_sword' and has_item('short_sword')", "철검 장착 → 낡은 단검은 소지품으로"),
+            ("call", "use_item_field", "potion", "player"),
+            ("expect", "party['player']['hp'] == 60", "회복약 사용 HP 30 → 60 (최대치에서 멈춤)"),
+            ("shot_ui", "ui_02_inventory_after"), ("open", "open_inventory"),
+            ("click", "door"), ("click", "shop"),
+            ("call", "shop_sell", "pip", "slime_jelly"),
+            ("expect", "gold == 52 and not has_item('slime_jelly')", "슬라임 젤리 판매 +2"),
+            ("shot_ui", "ui_03_shop"), ("click", "shelf"),
+        ])
+    show screen autodriver
+    jump main_loop

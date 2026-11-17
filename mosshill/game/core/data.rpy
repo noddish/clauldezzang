@@ -29,6 +29,10 @@ init -100 python:
                 for s in e.get("skills", []):
                     if s not in self.skills:
                         problems.append("적 %s 의 스킬 %s 없음" % (eid, s))
+            for eid, e in self.enemies.items():
+                for d in e.get("drops", []):
+                    if self.items[d["item"]]["type"] == "key":
+                        problems.append("적 %s 가 중요 아이템 %s 를 드롭함 (퀘스트 아이템은 이벤트에서 줄 것)" % (eid, d["item"]))
             for zone, table in self.encounters.items():
                 for group in table["groups"]:
                     for eid in group["enemies"]:
