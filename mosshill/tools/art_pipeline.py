@@ -294,6 +294,8 @@ def do_object(raw):
 ##   cut       이 y 아래는 가구(바·식탁·계산대) 뒤라 안 보임 (없으면 null) — 가구 윗면의 '뒤쪽' 끝.
 ##             앞쪽 모서리에서 자르면 몸이 가구 윗면을 덮어 '가구 위에 올려 놓은' 것처럼 보인다
 ##   show      cut 아래라도 보이는 곳 다각형 목록 (가구 위에 올린 손·도구) (선택)
+##   show_from_scene  true 면 show 안(cut 아래)은 단독 그림 대신 1) 장면의 픽셀을 쓴다.
+##             가구 위에 놓인 도구(도마 등)는 단독 그림에서 옆모습으로 그려져 원근이 안 맞기 때문 — 1) 은 배경과 같은 원근
 ##   hide      앞의 물건에 가려지는 곳 다각형 목록 (선택)
 ##   shadow    true 면 발밑 그림자 (바닥에 놓인 전신)
 ##   fit_cut   맞출 때 비교를 멈출 y (1) 그림에서 가구에 가려진 선이 cut 과 다를 때, 기본은 cut)
@@ -396,8 +398,9 @@ def look_from_busy(busy, look):
     return out
 
 
-def place_char(char, k, ox, oy, pl, color):
+def place_char(char, k, ox, oy, pl, color, scene=None, sil=None):
     """큰 인물 그림 → 화면 크기 레이어 (줄이기, 방 색감, 발밑 그림자, 가려지는 곳 잘라내기)"""
+    from_scene = pl.get("show_from_scene") and scene is not None
     x0, y0, x1, y1 = char.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
     small = char.resize((round(char.width * k), round(char.height * k)), Image.LANCZOS)
     layer = Image.new("RGBA", SCREEN, (0, 0, 0, 0))
@@ -416,11 +419,21 @@ def place_char(char, k, ox, oy, pl, color):
     dr = ImageDraw.Draw(keep)
     if pl.get("cut") is not None:
         dr.rectangle((0, pl["cut"], SCREEN[0], SCREEN[1]), fill=0)
-    for poly in pl.get("show", []):                 # cut 아래라도 보이는 곳 (식탁 위에 올린 손 등)
+    for poly in ([] if from_scene else pl.get("show", [])):     # cut 아래라도 보이는 곳 (식탁 위에 올린 손 등)
         dr.polygon([tuple(p) for p in poly], fill=255)
     for poly in pl.get("hide", []):
         dr.polygon([tuple(p) for p in poly], fill=0)
     layer.putalpha(ImageChops.multiply(layer.getchannel("A"), keep))
+    if from_scene:                                  # cut 아래 show 안은 1) 장면의 인물·도구 픽셀 (배경과 같은 원근)
+        area = Image.new("L", SCREEN, 0)
+        da = ImageDraw.Draw(area)
+        for poly in pl.get("show", []):
+            da.polygon([tuple(p) for p in poly], fill=255)
+        da.rectangle((0, 0, SCREEN[0], pl["cut"] - 1), fill=0)
+        m = ImageChops.multiply(area, Image.fromarray((sil * 255).astype(np.uint8)))
+        piece = scene.convert("RGBA")
+        piece.putalpha(m.filter(ImageFilter.GaussianBlur(0.6)))
+        layer.alpha_composite(piece)
     full = Image.new("RGBA", SCREEN, (0, 0, 0, 0))
     if pl.get("shadow"):
         fx, fy, w = ox + (x0 + x1) / 2 * k, oy + y1 * k, (x1 - x0) * k * 0.75
@@ -457,7 +470,7 @@ def do_scene(raw):
                 k, ox, oy = k * sc, ax - (ax - ox) * sc, ay - (ay - oy) * sc
             px = np.asarray(ref).astype(np.float32)[sil]
             color = (px.mean(axis=0), px.std(axis=0))
-            layers = {st: place_char(pose[st], k, ox, oy, pl, color) for st in SCENE_STATES}
+            layers = {st: place_char(pose[st], k, ox, oy, pl, color, ref, sil) for st in SCENE_STATES}
             for st, layer in layers.items():
                 rgb = layer.convert("RGB")
                 for tod, img in (("day", rgb), ("night", night_filter(rgb))):

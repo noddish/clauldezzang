@@ -5,11 +5,11 @@
 init -5 python:
     place("guild_kitchen", "부엌", parent="guild_hall")
     OBJECTS["guild_kitchen"] = [
-        Obj("back",   (0, 10, 201, 566),   MoveTo("guild_hall"),     "길드 홀로"),
-        Obj("pantry", (1135, 0, 146, 657), Interact("guild_pantry"), "찬장"),
-        Obj("hearth", (895, 60, 236, 496), Interact("guild_stove"),  "화덕"),
+        Obj("back",   (0, 0, 206, 563),   MoveTo("guild_hall"),     "길드 홀로"),
+        Obj("pantry", (1148, 0, 132, 651), Interact("guild_pantry"), "찬장"),
+        Obj("hearth", (910, 0, 236, 549), Interact("guild_stove"),  "화덕"),
     ]
-    NPC_SPOTS["guild_kitchen"] = {"ruby": 0.55}   # 아침: 식탁 뒤에서 당근 썰기
+    NPC_SPOTS["guild_kitchen"] = {"ruby": 0.50}   # 아침: 식탁 뒤에서 당근 썰기
 
 label guild_pantry:
     think "찬장에 빵과 치즈가 조금 있다. 길드 재정이 눈에 보인다."
