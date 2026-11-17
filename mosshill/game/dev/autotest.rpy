@@ -74,6 +74,13 @@ init python:
                     out.append("물건 마스크 없음: %s/%s" % (lid, o.id))
                 elif tuple(renpy.image_size(mask)) != tuple(o.rect[2:]):
                     out.append("마스크 크기 %s ≠ rect %s: %s/%s" % (renpy.image_size(mask), o.rect[2:], lid, o.id))
+        for lid, spots in NPC_SPOTS.items():
+            for mid in spots:
+                if npc_scene(lid, mid) is None:
+                    out.append("장소 인물 그림 없음: %s/%s (images/scenes/)" % (lid, mid))
+                for tod in ("day", "night"):
+                    if not renpy.loadable("images/scenes/scene_%s_%s_%s.png" % (lid, mid, tod)):
+                        out.append("장소 인물 %s 그림 없음: %s/%s" % (tod, lid, mid))
         need += ["icon_" + i for i in DATA.items] + ["enemy_" + e for e in DATA.enemies]
         for who, faces in CAST_FACES.items():
             need += ["%s_body" % who] + ["%s_face_%s" % (who, f) for f in faces]
@@ -117,6 +124,18 @@ label autotest_m0:
     n "밤의 길드 홀. 의뢰판에 마우스를 올린 모습."
     hide screen autoshot
     hide hovertest
+    hide ruby
+
+    ## 장소 안 인물 (밤의 길드 홀에서 검을 닦는 루비) + 마우스를 올렸을 때 인물만 밝게
+    python:
+        _sc = npc_scene("guild_hall", "ruby")
+    show expression _sc.picture as scenetest
+    show expression _sc.hover() as hovertest
+    show screen autoshot("m0_npc_scene_hover")
+    n "장소 안 인물에 마우스를 올린 모습."
+    hide screen autoshot
+    hide hovertest
+    hide scenetest
     $ tod = 0
 
     scene bg_guild_hall_day

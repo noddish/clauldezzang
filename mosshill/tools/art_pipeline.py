@@ -7,9 +7,10 @@
     표정    <이름>_<표정>.png     같은 그림에서 표정만 바꾼 것
     적      <종류>.png            투명 배경
     아이템  items.png             4x4 칸
+    장소 인물 scene_<장소>_<인물>.png  배경 원본에 인물을 그려 넣은 것
 
     python3 tools/art_pipeline.py RAW all        # 전부
-    python3 tools/art_pipeline.py RAW bg         # 배경만 (bg, sprite, face, enemy, icon, object)
+    python3 tools/art_pipeline.py RAW bg         # 배경만 (bg, sprite, face, enemy, icon, object, scene)
 
 원본은 커서 저장소에 넣지 않는다. 결과물만 커밋한다.
 """
@@ -54,23 +55,39 @@ def do_bg(raw):
 
 ## ---------------------------------------------------------------- 인물
 ## 1024x1536 → 480x720 (루비와 같은 캔버스). 얼굴 조각은 같은 캔버스에 얼굴만 남기고 투명.
-## FACES: 원본(1024x1536) 좌표의 얼굴 타원 (중심 x, y, 반지름 x, y) — 눈썹부터 턱까지
+## face_box: 원본(1024x1536) 좌표에서 표정이 바뀔 수 있는 곳 (이마·눈썹부터 턱까지, 넉넉하게).
+##   이 안에서 '실제로 달라진 곳'만 조각으로 가져간다. 상자가 좁으면 움직인 눈썹의 원래 자리가
+##   상자 밖에 남아 눈썹이 두 개로 보인다 (처음 만든 타원 영역에서 실제로 생긴 문제).
+## frame: (배율, 머리 꼭대기 y) — 원본 그림의 크기·위치를 바꿀 때만.
+##   핍은 전신을 작게 그려 와서 다른 인물 옆에 서면 너무 작다 → 1.3배 키우고 허벅지에서 자른다.
+##   (머리는 다른 인물보다 낮게 둬서 키 작은 하플링으로 보이게)
 CHARS = {
-    "kai":    {"faces": ["happy", "surprised", "sad", "angry", "talk"], "ellipse": (560, 320, 128, 142)},
-    "martha": {"faces": ["happy", "angry", "surprised", "talk"],        "ellipse": (440, 350, 140, 150)},
-    "pip":    {"faces": ["happy", "sad", "surprised", "talk"],          "ellipse": (465, 555, 120, 118)},
-    "gregor": {"faces": ["happy", "angry", "talk"],                     "ellipse": (450, 300, 132, 152)},
+    "kai":    {"faces": ["happy", "surprised", "sad", "angry", "talk"], "face_box": (400, 140, 730, 480)},
+    "martha": {"faces": ["happy", "angry", "surprised", "talk"],        "face_box": (260, 160, 630, 520)},
+    "pip":    {"faces": ["happy", "sad", "surprised", "talk"],          "face_box": (300, 380, 630, 740),
+               "frame": (1.3, 427)},
+    "gregor": {"faces": ["happy", "angry", "talk"],                     "face_box": (290, 110, 620, 480)},
 }
 SPRITE = (480, 720)
 SPRITE_RAW = (1024, 1536)
 
 
+def framed(im, spec, body):
+    """원본 캔버스에서 인물의 크기·위치를 바꾼다 (spec 의 frame). 몸과 표정 조각에 똑같이 적용."""
+    if "frame" not in spec:
+        return im
+    s, top = spec["frame"]
+    x0, y0, x1, y1 = body.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
+    cx = (x0 + x1) / 2
+    return place(im, s, round(cx - cx * s), round(top - y0 * s))
+
+
 def do_sprite(raw):
-    for name in CHARS:
+    for name, spec in CHARS.items():
         out = os.path.join(IMG, "characters", name)
         os.makedirs(out, exist_ok=True)
         im = Image.open(os.path.join(raw, name + ".png")).convert("RGBA")
-        im.resize(SPRITE, Image.LANCZOS).save(os.path.join(out, "%s_body.png" % name), optimize=True)
+        framed(im, spec, im).resize(SPRITE, Image.LANCZOS).save(os.path.join(out, "%s_body.png" % name), optimize=True)
         print("sprite", name)
 
 
@@ -135,25 +152,34 @@ def do_face(raw):
     for name, spec in CHARS.items():
         out = os.path.join(IMG, "characters", name)
         body = Image.open(os.path.join(raw, name + ".png")).convert("RGBA")
-        cx, cy, rx, ry = spec["ellipse"]
-        ## 맞춤 비교 구역: 얼굴 타원 바깥 둘레 (머리카락, 목, 어깨)
-        ring = (cx - rx - 90, cy - ry - 60, cx + rx + 90, cy + ry + 90)
+        x0, y0, x1, y1 = spec["face_box"]
+        ## 맞춤 비교 구역: 얼굴 상자 둘레 (머리카락, 목, 어깨)
+        ring = (x0 - 70, y0 - 60, x1 + 70, y1 + 90)
         area = Image.new("L", body.size, 0)
-        ImageDraw.Draw(area).ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=255)
+        ImageDraw.Draw(area).rectangle((x0, y0, x1, y1), fill=255)
+        area = area.filter(ImageFilter.GaussianBlur(10))
         for face in spec["faces"]:
             ex = Image.open(os.path.join(raw, "%s_%s.png" % (name, face))).convert("RGBA")
             d, s, dx, dy = register(body, ex, ring)
             ex = place(ex, s, dx, dy)
-            ## 얼굴 조각 = 타원 안에서 '실제로 달라진 곳'만 (눈썹·눈·입).
+            ## 얼굴 조각 = 상자 안에서 '실제로 달라진 곳'만 (눈썹·눈·입, 원래 눈썹이 있던 자리 포함).
             ## 머리카락처럼 거의 같은 곳은 원래 몸 그림을 그대로 둬서 경계선이 안 보이게 한다.
             diff = ImageChops.difference(gray_on_white(body), gray_on_white(ex)).filter(ImageFilter.GaussianBlur(2))
             changed = diff.point(lambda v: 255 if v > 14 else 0).filter(ImageFilter.MaxFilter(15))
             mask = ImageChops.multiply(changed, area).filter(ImageFilter.GaussianBlur(5))
             piece = ex.copy()                       # 색은 그대로, 투명도만 조각 모양으로
             piece.putalpha(ImageChops.multiply(mask, ex.getchannel("A")))
-            piece.resize(SPRITE, Image.LANCZOS).save(
+            ## 검사: 몸 + 조각 이 표정 그림과 얼마나 다른가 (원래 눈썹 같은 흔적이 남으면 커진다).
+            ## 맞춤이 1~2px 어긋나 생기는 가는 윤곽선 차이는 무시하고(MinFilter) 덩어리만 센다.
+            comp = body.copy()
+            comp.alpha_composite(piece)
+            left = ImageChops.difference(gray_on_white(comp), gray_on_white(ex)).filter(ImageFilter.GaussianBlur(1.5))
+            left = left.point(lambda v: 255 if v > 40 else 0).filter(ImageFilter.MinFilter(7))
+            left = np.asarray(left.crop(spec["face_box"])) > 0
+            framed(piece, spec, body).resize(SPRITE, Image.LANCZOS).save(
                 os.path.join(out, "%s_face_%s.png" % (name, face)), optimize=True)
-            print("face %-7s %-9s scale=%.2f shift=(%d,%d) ring_diff=%.1f" % (name, face, s, dx, dy, d))
+            print("face %-7s %-9s scale=%.2f shift=(%d,%d) ring_diff=%.1f leftover=%.2f%%%s" % (
+                name, face, s, dx, dy, d, left.mean() * 100, "  <-- 확인 필요" if left.mean() > 0.003 else ""))
 
 
 ## ---------------------------------------------------------------- 적
@@ -223,8 +249,82 @@ def do_object(raw):
             print("object %-14s %-8s rect=%s" % (loc, oid, (box[0], box[1], box[2] - box[0], box[3] - box[1])))
 
 
+## ---------------------------------------------------------------- 장소 안 인물
+## tools/art_scenes.json: {장소: {인물: {"box": [x0,y0,x1,y1], ...}}}
+## RAW/scene_<장소>_<인물>.png = 배경 원본에 인물을 그려 넣은 그림 (같은 구도).
+## 원래 배경과 다른 곳 = 인물 → 화면 크기(1280x720) 투명 PNG 로 저장 (위치 정보가 따로 필요 없다).
+## 식탁·계산대 뒤에 선 인물은 앞의 가구가 배경에 그대로 있으니 가려지는 것도 저절로 맞는다.
+def largest_blob(m):
+    """참/거짓 배열에서 가장 큰 덩어리만 남긴다 (4방향 연결)"""
+    h, w = m.shape
+    seen = np.zeros_like(m, dtype=bool)
+    best = []
+    for y0, x0 in zip(*np.nonzero(m)):
+        if seen[y0, x0]:
+            continue
+        stack, blob = [(y0, x0)], []
+        seen[y0, x0] = True
+        while stack:
+            y, x = stack.pop()
+            blob.append((y, x))
+            for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                if 0 <= ny < h and 0 <= nx < w and m[ny, nx] and not seen[ny, nx]:
+                    seen[ny, nx] = True
+                    stack.append((ny, nx))
+        if len(blob) > len(best):
+            best = blob
+    out = np.zeros_like(m, dtype=bool)
+    if best:
+        ys, xs = zip(*best)
+        out[list(ys), list(xs)] = True
+    return out
+
+
+def do_scene(raw):
+    with open(os.path.join(ROOT, "tools", "art_scenes.json"), encoding="utf-8") as f:
+        spec = json.load(f)
+    out = os.path.join(IMG, "scenes")
+    os.makedirs(out, exist_ok=True)
+    for loc, chars in spec.items():
+        if loc.startswith("_"):
+            continue
+        bg = Image.open(os.path.join(raw, loc + ".png")).convert("RGB").crop((0, 80, 1536, 944)).resize(SCREEN, Image.LANCZOS)
+        for who, s in chars.items():
+            sc = Image.open(os.path.join(raw, "scene_%s_%s.png" % (loc, who))).convert("RGB")
+            sc = sc.crop((0, 80, 1536, 944)).resize(SCREEN, Image.LANCZOS)
+            x0, y0, x1, y1 = s["box"]
+            ## 다른 곳: 색 차이 → 잡티 제거 → 틈 메우기 → 가장 큰 덩어리 → 속 구멍 채우기
+            d = np.asarray(ImageChops.difference(bg, sc).filter(ImageFilter.GaussianBlur(1.5))).max(axis=2)
+            m = Image.fromarray(((d > 24) * 255).astype(np.uint8)).crop((x0, y0, x1, y1))
+            m = m.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.MaxFilter(3))      # 잡티
+            m = m.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.MinFilter(9))      # 틈
+            m = Image.fromarray((largest_blob(np.asarray(m) > 0) * 255).astype(np.uint8))
+            filled = m.copy()                                                            # 구멍: 테두리에서 못 닿는 빈칸
+            pad = Image.new("L", (filled.width + 2, filled.height + 2), 0)
+            pad.paste(filled, (1, 1))
+            ImageDraw.floodfill(pad, (0, 0), 128)
+            m = Image.fromarray(np.where(np.asarray(pad)[1:-1, 1:-1] == 128, 0, 255).astype(np.uint8))
+            alpha = Image.new("L", SCREEN, 0)
+            alpha.paste(m.filter(ImageFilter.GaussianBlur(1.2)), (x0, y0))
+            for tod, img in (("day", sc), ("night", night_filter(sc))):
+                piece = Image.new("RGBA", SCREEN, (0, 0, 0, 0))
+                piece.paste(img, (0, 0), alpha)
+                piece.putalpha(alpha)
+                piece.save(os.path.join(out, "scene_%s_%s_%s.png" % (loc, who, tod)), optimize=True)
+            ## 클릭·하이라이트 모양: 인물 윤곽 다각형 (화면 크기 1비트 PNG)
+            shape = Image.new("P", SCREEN, 0)
+            shape.putpalette([0, 0, 0, 255, 255, 255])
+            ImageDraw.Draw(shape).polygon([tuple(p) for p in s["shape"]], fill=1)
+            shape.save(os.path.join(out, "mask_scene_%s_%s.png" % (loc, who)), transparency=0, optimize=True)
+            outside = np.asarray(ImageChops.difference(bg, sc).convert("L")).astype(np.float32)
+            outside[y0:y1, x0:x1] = np.nan
+            bb = alpha.getbbox()
+            print("scene %-14s %-7s 인물 영역=%s  상자 밖 차이=%.1f (작을수록 구도가 그대로)" % (
+                loc, who, bb, np.nanmean(outside)))
+
+
 STEPS = {"bg": do_bg, "sprite": do_sprite, "face": do_face, "enemy": do_enemy,
-         "icon": do_icon, "object": do_object}
+         "icon": do_icon, "object": do_object, "scene": do_scene}
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

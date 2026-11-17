@@ -84,6 +84,23 @@ init -25 python:
                 out.append((mid, x))
         return out
 
+    class NpcScene(object):
+        """장소 안 인물 그림 (원작처럼 그 장소에서 뭔가 하는 모습).
+        images/scenes/scene_<장소>_<인물>_<day|night>.png — 화면 크기, 인물 부분만 불투명
+        images/scenes/mask_scene_<장소>_<인물>.png       — 클릭·하이라이트할 인물 윤곽"""
+        def __init__(self, loc_id, mid):
+            base = "images/scenes/%%s_%s_%s" % (loc_id, mid)
+            self.picture = (base % "scene") + ("_night.png" if is_dark() else "_day.png")
+            self.mask = (base % "mask_scene") + ".png"
+
+        def hover(self):
+            return At(AlphaMask(self.picture, self.mask), obj_hover)
+
+    def npc_scene(loc_id, mid):
+        """그 장소용 인물 그림이 있으면 NpcScene, 없으면 None (→ 대화용 큰 그림을 세운다)"""
+        sc = NpcScene(loc_id, mid)
+        return sc if renpy.loadable(sc.picture) and renpy.loadable(sc.mask) else None
+
 
     ## ---------------------------------------------------------------- 화면 버튼 동작
     class MoveTo(Action):
@@ -147,8 +164,18 @@ label go_to:
 
 
 ## ---------------------------------------------------------------- 공용 장소 화면
+## 마우스를 올렸을 때: 색을 몇 배로 (밝기를 '더하면' 밤 그림이 뿌옇게 떠서 '곱한다'), 살짝 따뜻하게.
+## 어두운 밤 그림은 곱해도 티가 덜 나서 더 세게.
+init -10 python:
+    def hover_matrix():
+        k = 1.75 if is_dark() else 1.3
+        return Matrix([k * 1.04, 0, 0, 0,
+                       0, k, 0, 0,
+                       0, 0, k * 0.92, 0,
+                       0, 0, 0, 1])
+
 transform obj_hover:
-    matrixcolor BrightnessMatrix(0.18)
+    matrixcolor hover_matrix()
 
 transform npc_spot(x):
     xcenter x yalign 1.0
@@ -179,12 +206,24 @@ screen location_view(loc_id):
                 text o.tip size 20 color "#ffffffcc" align (0.5, 0.5) text_align 0.5
 
     for mid, x in npcs_here(loc_id):
-        imagebutton:
-            at npc_spot(x)
-            idle mid
-            hover At(mid, obj_hover)
-            focus_mask True
-            action TalkTo(mid)
-            tooltip "%s와 대화" % CHAR_NAMES.get(mid, mid)
+        $ sc = npc_scene(loc_id, mid)
+        if sc:
+            ## 그 장소에서 뭔가 하는 모습 (배경의 일부처럼) — 마우스를 올리면 인물만 밝게
+            add sc.picture
+            imagebutton:
+                idle Null(1280, 720)
+                hover sc.hover()
+                focus_mask sc.mask
+                action TalkTo(mid)
+                tooltip "%s와 대화" % CHAR_NAMES.get(mid, mid)
+        else:
+            ## 장소용 그림이 없으면 대화용 큰 그림을 세운다
+            imagebutton:
+                at npc_spot(x)
+                idle mid
+                hover At(mid, obj_hover)
+                focus_mask True
+                action TalkTo(mid)
+                tooltip "%s와 대화" % CHAR_NAMES.get(mid, mid)
 
     use hud
