@@ -6,3 +6,5 @@ game/saves/
 log.txt
 traceback.txt
 errors.txt
+__pycache__/
+*.pyc
