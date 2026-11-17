@@ -20,7 +20,9 @@
 | 핍 | `img_mwk04yuwDl5LkiiB` | 몸 (전신, 작게) |
 | 그레고르 | `img_mwk05a0vTrlhPirv` | 몸. 이 화풍에서 **나이(주름)를 그리는 법**의 견본 |
 | 여성 후보 10명 (40세 미만) | 레나 `img_mwk4pph0U68HMxxT` · 이졸데 `img_mwk4pwg3bFu67AQ1` · 자라 `img_mwk4q7t4iIdGqDBx` · 하나 `img_mwk4qgtywx6u2ZP6` · 브리짓 `img_mwk4qogq5pn4Z3jN` · 셀레스트 `img_mwk4smg88Psimnwd` · 엘로디 `img_mwk4stgr8dxk6OMC` · 닉스 `img_mwk4rh90Gge9A6ra` · 로사 `img_mwk4rns6l3dnN338` · 세라핀 `img_mwk4rv56xs6vpHgX` | 카이 견본 하나로 처음부터. 나이 든 인물은 만들지 않는다 (40세 미만) |
-| 배경: 내 방 / 부엌 / 길드 앞 | `img_mwk00f9bvTm6XvLx` / `img_mwk00ppuKfGbnYrw` / `img_mwk010ifbr0lNxiK` | |
+| 배경: 내 방 / 길드 앞 | `img_mwk00f9bvTm6XvLx` / `img_mwk010ifbr0lNxiK` | |
+| 배경: 부엌 (식탁을 가까이 잡은 판, 지금 쓰는 것) | `img_mwkknsql1wyx241h` | 식탁 85cm·긴 의자 45cm 실제 비율 |
+| 배경: 부엌 (넓게 잡은 예전 판) | `img_mwk00ppuKfGbnYrw` | |
 | 배경: 광장 | `img_mwk01cc9WcxxfKxh` | |
 | 배경: 선술집 / 잡화점 (바·계산대를 가까이 잡은 판, 지금 쓰는 것) | `img_mwketo5muLfRunxQ` / `img_mwkf4h896XJ8x4Jn` | 바 105cm·의자 75cm·계산대 95cm 실제 비율 |
 | 배경: 선술집 / 잡화점 (멀리서 넓게 잡은 예전 판) | `img_mwk01nibyD82wGX9` / `img_mwk020slS8bQPtdR` | 가구 뒤 인물이 거인처럼 보여 교체 |
@@ -87,6 +89,7 @@
 | 바·계산대 뒤 인물이 거인처럼 보임 — 가구 아래 남은 길이에 허리·다리가 들어갈 수 없음 (마르타 2.2배, 핍 1.7배) | 배경이 가구를 멀리서 넓게 잡았고, AI 가 얼굴이 보이게 인물을 크게 그림. 실제 비율로 줄이면 얼굴이 뭉개지고 의자가 커 보임 | 인물이 가구 뒤에 서는 장소는 **배경을 가구 가까이 잡아** 다시 그린다 (가구 높이를 화면 % 와 cm 로 지정). 장면 단계의 `check` 가 가구 높이로 비율을 재고 `scale` 로 맞춘다 (0.8~1.25배 밖이면 경고) |
 | 크기 보정 뒤 손이 배경 물건(저울)에서 떨어짐 | 인물을 줄이면 뻗은 손도 몸 쪽으로 따라 줄어든다 | 손·소품이 몸 앞(가구 윗면 위)에 있는 자세로. 배경 물건을 만지는 자세는 피한다 |
 | '앞을 봄' 그림에서 고개가 정면으로 돌아감 | 보통 모드가 머리를 다시 그림 | 정밀 모드 + '머리 그대로, 눈동자와 입만' |
+| 가구 위 도마가 식탁 앞 모서리에 얇은 선처럼 보이고 칼이 식탁에 박힌 것 같음 | 단독 그림(2)은 눈높이에서 그려서 도마가 옆모습. 배경은 위에서 내려다본 원근 | `show_from_scene`: 가구 윗면 아래(show 안)는 1) 장면의 손·도구 픽셀을 쓴다 — 배경과 같은 원근 |
 | '앞을 봄' 그림 투명 배경에 옅은 얼룩 → 머리 옆 검은 자국 | 정밀 모드 결과의 투명 배경이 완전히 투명하지 않음 | 가공에서 몸 그림이 불투명한 곳 안에서만 합친다 (`look_from_busy`) |
 | 영역 지정(마스크) 편집 실패 | 이미지 서버가 마스크를 거부 ("Invalid image data") | 마스크 없이 "~만 바꿔"로 그리고 `art_pipeline.py` 가 바뀐 곳만 오린다 |
 
@@ -98,8 +101,9 @@
 | 마르타 표정 기쁨 / 화남 / 놀람 / 말하기 | `img_mwk5fs1nykP7cvOp` / `img_mwk5gla19Zqx0u4w` / `img_mwk5gvn65H1AW9uM` / `img_mwk5h46bAJqzY5hq` |
 | 장소 인물 1) 장면 — 부엌 루비 / 길드 홀 루비 / 선술집 마르타 | `img_mwk5hezcIrN7DtBx` / `img_mwk5hr8xDOZxF9XX` / `img_mwk5j435FcIsnrxc` |
 | 장소 인물 1) 장면 — 잡화점 핍 / 광장 핍 | `img_mwk33ey2wlWuSMdW` / `img_mwk33ndtudBcVSua` |
-| 장소 인물 2) 하던 일 / 앞을 봄 — 부엌 루비 (도마·당근 포함) | `img_mwk7pc09G7ElWjcv` / `img_mwk7q63yNWNOkHvU` |
-| 부엌 배경 (식탁 위 채소 치운 판) | `img_mwk7p1h5vMRQxjDf` — 원본 배경에서 식탁 가운데만 이 그림으로 교체 |
+| 부엌 루비 (가까운 배경판) — 1) 장면 / 2) 하던 일 / 앞을 봄 | `img_mwkkp0yg6PxIIVWL` / `img_mwkkq2npdOSyO0qa` / `img_mwkkrav3xvZHIELF` (scale 없음, 비율 1.07배) |
+| 장소 인물 2) 하던 일 / 앞을 봄 — 부엌 루비 (예전 넓은 배경판, 도마·당근 포함) | `img_mwk7pc09G7ElWjcv` / `img_mwk7q63yNWNOkHvU` |
+| 부엌 배경 (예전 넓은 판, 식탁 위 채소 치운 것) | `img_mwk7p1h5vMRQxjDf` — 새 부엌 배경의 1번 견본으로 씀 |
 | 길드 홀 루비 | `img_mwk6o5dzKhYphXZU` / `img_mwk6yuuuSZxYZcY3` |
 | 선술집 마르타 (가까운 배경판) — 1) 장면 / 2) 하던 일 / 앞을 봄 | `img_mwkevd8k42sjW1jn` / `img_mwkewnqqXXwNxBNb` / `img_mwkeyo6bqUR647Bs` (scale 0.66) |
 | 잡화점 핍 (가까운 배경판, 금화를 눈앞에 들고 살핌) — 1) 장면 / 2) 하던 일 / 앞을 봄 | `img_mwkf5ohi9lqOiGCF` / `img_mwkf7ariy6pdxx7U` / `img_mwkf8fifRo3DwyRV` (scale 0.74) |
