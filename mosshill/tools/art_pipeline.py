@@ -62,6 +62,7 @@ def do_bg(raw):
 ##   핍은 전신을 작게 그려 와서 다른 인물 옆에 서면 너무 작다 → 1.3배 키우고 허벅지에서 자른다.
 ##   (머리는 다른 인물보다 낮게 둬서 키 작은 하플링으로 보이게)
 CHARS = {
+    "ruby":   {"faces": ["happy", "angry", "sad", "surprised", "blink", "talk"], "face_box": (260, 150, 740, 540)},
     "kai":    {"faces": ["happy", "surprised", "sad", "angry", "talk"], "face_box": (400, 140, 730, 480)},
     "martha": {"faces": ["happy", "angry", "surprised", "talk"],        "face_box": (260, 160, 630, 520)},
     "pip":    {"faces": ["happy", "sad", "surprised", "talk"],          "face_box": (300, 380, 630, 740),
@@ -89,6 +90,12 @@ def do_sprite(raw):
         im = Image.open(os.path.join(raw, name + ".png")).convert("RGBA")
         framed(im, spec, im).resize(SPRITE, Image.LANCZOS).save(os.path.join(out, "%s_body.png" % name), optimize=True)
         print("sprite", name)
+
+
+def _on_paper(im):
+    bg = Image.new("RGBA", im.size, (235, 225, 210, 255))
+    bg.alpha_composite(im)
+    return bg.convert("RGB")
 
 
 def gray_on_white(im):
@@ -149,6 +156,7 @@ def register(body, ex, box):
 
 
 def do_face(raw):
+    review = []                                     # 사람이 눈으로 확인할 점검용 그림 (원본 폴더에 저장)
     for name, spec in CHARS.items():
         out = os.path.join(IMG, "characters", name)
         body = Image.open(os.path.join(raw, name + ".png")).convert("RGBA")
@@ -158,6 +166,8 @@ def do_face(raw):
         area = Image.new("L", body.size, 0)
         ImageDraw.Draw(area).rectangle((x0, y0, x1, y1), fill=255)
         area = area.filter(ImageFilter.GaussianBlur(10))
+        look = (x0 - 50, y0 - 30, x1 + 30, y1 + 10)
+        row = [_on_paper(body).crop(look)]
         for face in spec["faces"]:
             ex = Image.open(os.path.join(raw, "%s_%s.png" % (name, face))).convert("RGBA")
             d, s, dx, dy = register(body, ex, ring)
@@ -175,11 +185,26 @@ def do_face(raw):
             comp.alpha_composite(piece)
             left = ImageChops.difference(gray_on_white(comp), gray_on_white(ex)).filter(ImageFilter.GaussianBlur(1.5))
             left = left.point(lambda v: 255 if v > 40 else 0).filter(ImageFilter.MinFilter(7))
-            left = np.asarray(left.crop(spec["face_box"])) > 0
+            ## 조각이 조금이라도 적용되는 곳 전부 (상자 경계의 흐린 띠 포함 — 경계에 걸친 눈이 반투명하게 남는 문제)
+            left = (np.asarray(left) > 0) & (np.asarray(area) > 0)
+            row.append(_on_paper(comp).crop(look))
             framed(piece, spec, body).resize(SPRITE, Image.LANCZOS).save(
                 os.path.join(out, "%s_face_%s.png" % (name, face)), optimize=True)
             print("face %-7s %-9s scale=%.2f shift=(%d,%d) ring_diff=%.1f leftover=%.2f%%%s" % (
                 name, face, s, dx, dy, d, left.mean() * 100, "  <-- 확인 필요" if left.mean() > 0.003 else ""))
+        review.append(row)
+    ## 점검용 그림: 인물마다 한 줄 (기본 얼굴 + 표정들). 경계에 걸친 눈이 반투명하게 남는 등
+    ## 수치로 못 잡는 문제를 눈으로 확인한다.
+    h = 200
+    rows = [[im.resize((round(im.width * h / im.height), h)) for im in r] for r in review]
+    sheet = Image.new("RGB", (max(sum(im.width + 4 for im in r) for r in rows), (h + 4) * len(rows)), "white")
+    for i, r in enumerate(rows):
+        x = 0
+        for im in r:
+            sheet.paste(im, (x, i * (h + 4)))
+            x += im.width + 4
+    sheet.save(os.path.join(raw, "_review_faces.png"))
+    print("점검용 그림:", os.path.join(raw, "_review_faces.png"))
 
 
 ## ---------------------------------------------------------------- 적
