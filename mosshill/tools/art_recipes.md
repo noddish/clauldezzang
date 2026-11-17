@@ -16,6 +16,7 @@
 | 마르타 새 후보 A / B / C | `img_mwk3t4rvcZF5sLeh` / `img_mwk3tedn5xGs0gof` / `img_mwk3tqbznKRo5MH0` | A 은퇴한 모험가 / B 푸근한 아줌마 / C 키 큰 무뚝뚝한 사장 |
 | 마르타 성숙한 후보 1 / 2 | `img_mwk4etfk9wjDt7JE` / `img_mwk4f33wxOsIhdvF` | 1 화려한 사장님 / 2 다정하게 놀리는 누님 |
 | 마르타 매혹적인 후보 3 / 4 | `img_mwk4iohqq12tH346` / `img_mwk4iwruJiDxqgw5` | 3 = 1번을 고쳐 분위기만 (머리 만지는 손, 나른한 눈) / 4 = 1번 얼굴 견본으로 새로 |
+| 마르타 매혹적인 후보 3·4 얼굴 부드럽게 | `img_mwk4lev6V6ZxHKtp` / `img_mwk4lnxmpxNW9dCD` | 턱선·광대를 둥글게 ("얼굴이 너무 각졌다") |
 | 핍 | `img_mwk04yuwDl5LkiiB` | 몸 (전신, 작게) |
 | 그레고르 | `img_mwk05a0vTrlhPirv` | 몸. 이 화풍에서 **나이(주름)를 그리는 법**의 견본 |
 | 배경: 내 방 / 부엌 / 길드 앞 | `img_mwk00f9bvTm6XvLx` / `img_mwk00ppuKfGbnYrw` / `img_mwk010ifbr0lNxiK` | |
