@@ -33,6 +33,7 @@ screen hud():
 
     hbox:
         xalign 1.0 yalign 1.0 xoffset -12 yoffset -12 spacing 10
+        textbutton "소지품" action Jump("open_inventory")
         textbutton "시간 보내기" action WaitTick()
 
     $ tip = GetTooltip()

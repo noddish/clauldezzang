@@ -5,7 +5,7 @@
 ## ============================================================================
 
 default gold = 50
-default inventory = {}      # 아이템 id → 개수
+default inventory = {"potion": 1}     # 아이템 id → 개수 (시작할 때 회복약 1)
 
 init -20 python:
     def add_item(item_id, count=1, notify=True):

@@ -1,13 +1,96 @@
 {
-  "first_aid":   {"name": "응급처치",   "mp": 4, "target": "ally",        "power": 0,   "effect": {"heal_hp": 35}, "desc": "아군 1명 HP 회복."},
-  "taunt":       {"name": "도발",       "mp": 3, "target": "self",        "power": 0,   "effect": {"taunt": 2},    "desc": "2턴 동안 적의 공격을 끌어온다."},
-  "spin_slash":  {"name": "회전베기",   "mp": 5, "target": "all_enemies", "power": 0.8, "effect": {},              "desc": "적 전체를 벤다."},
-  "flame_slash": {"name": "불꽃베기",   "mp": 8, "target": "enemy",       "power": 2.0, "effect": {"element": "fire"}, "desc": "부싯돌로 칼날에 불을 붙인다."},
-  "duo_strike":  {"name": "합동 공격",  "mp": 10, "target": "enemy",      "power": 2.6, "effect": {"needs_bond": 60}, "desc": "루비와 호흡을 맞춘 일격. 신뢰도 60 필요."},
-
-  "slime_spit":  {"name": "산성 침",    "mp": 0, "target": "enemy",       "power": 0.9, "effect": {"poison": 0.3}, "desc": "30% 확률로 독."},
-  "goblin_stab": {"name": "찌르기",     "mp": 0, "target": "enemy",       "power": 1.2, "effect": {},              "desc": ""},
-  "spore_puff":  {"name": "포자 뿜기",  "mp": 0, "target": "all_allies",  "power": 0.5, "effect": {"stun": 0.2},   "desc": "20% 확률로 기절."},
-  "tongue_lash": {"name": "혀 채찍",    "mp": 0, "target": "enemy",       "power": 1.5, "effect": {},              "desc": ""},
-  "belly_slam":  {"name": "배치기",     "mp": 0, "target": "all_allies",  "power": 1.0, "effect": {"stun": 0.15},  "desc": "땅을 울려 전체 공격."}
+ "first_aid": {
+  "name": "응급처치",
+  "mp": 4,
+  "target": "ally",
+  "power": 0,
+  "effect": {
+   "heal_hp": 35
+  },
+  "desc": "아군 1명 HP 회복."
+ },
+ "taunt": {
+  "name": "도발",
+  "mp": 3,
+  "target": "self",
+  "power": 0,
+  "effect": {
+   "taunt": 2
+  },
+  "desc": "2턴 동안 적의 공격을 끌어온다."
+ },
+ "spin_slash": {
+  "name": "회전베기",
+  "mp": 5,
+  "target": "all_enemies",
+  "power": 0.8,
+  "effect": {},
+  "desc": "적 전체를 벤다."
+ },
+ "flame_slash": {
+  "name": "불꽃베기",
+  "mp": 7,
+  "target": "enemy",
+  "power": 2.0,
+  "effect": {
+   "element": "fire"
+  },
+  "desc": "부싯돌로 칼날에 불을 붙인다."
+ },
+ "duo_strike": {
+  "name": "합동 공격",
+  "mp": 10,
+  "target": "enemy",
+  "power": 2.6,
+  "effect": {
+   "needs_bond": 60
+  },
+  "desc": "루비와 호흡을 맞춘 일격. 신뢰도 60 필요."
+ },
+ "slime_spit": {
+  "name": "산성 침",
+  "mp": 0,
+  "target": "enemy",
+  "power": 0.9,
+  "effect": {
+   "poison": 0.3
+  },
+  "desc": "30% 확률로 독."
+ },
+ "goblin_stab": {
+  "name": "찌르기",
+  "mp": 0,
+  "target": "enemy",
+  "power": 1.2,
+  "effect": {},
+  "desc": ""
+ },
+ "spore_puff": {
+  "name": "포자 뿜기",
+  "mp": 0,
+  "target": "all_allies",
+  "power": 0.5,
+  "effect": {
+   "stun": 0.2
+  },
+  "desc": "20% 확률로 기절."
+ },
+ "tongue_lash": {
+  "name": "혀 채찍",
+  "mp": 0,
+  "target": "enemy",
+  "power": 1.5,
+  "effect": {},
+  "desc": ""
+ },
+ "belly_slam": {
+  "name": "배치기",
+  "mp": 0,
+  "target": "all_allies",
+  "power": 1.0,
+  "effect": {
+   "stun": 0.15
+  },
+  "desc": "땅을 울려 전체 공격."
+ }
 }

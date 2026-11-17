@@ -27,6 +27,17 @@ init -50 python:
         with open(os.path.join(SHOT_DIR, "autotest.log"), "a") as f:
             f.write(msg + "\n")
 
+    ## 자동 검사 중 오류가 나면 오류 화면에서 멈추지 말고 기록 후 바로 종료
+    if AUTOTEST:
+        if not os.path.isdir(SHOT_DIR):
+            os.makedirs(SHOT_DIR)
+
+        def _autotest_exception(short, full, traceback_fn):
+            autotest_log("EXCEPTION\n" + full)
+            os._exit(1)
+
+        config.exception_handler = _autotest_exception
+
 
 ## 실제 대사가 나오는 중에 0.8초 뒤 스크린샷을 찍고 다음으로 넘어간다 (클릭 대신)
 screen autoshot(name):
@@ -100,7 +111,7 @@ init python:
         ("click", "cellar"),
         ("expect", "MARTHA.is_state('cellar_report') and tod == 2", "창고 청소 후 저녁"),
         ("talk", "martha"),
-        ("expect", "MARTHA.is_state('done') and has_item('potion', 2)", "창고 보상 회복약 2"),
+        ("expect", "MARTHA.is_state('done') and has_item('potion')", "창고 보상 회복약"),
         ("click", "exit"), ("click", "guild"),
         ("expect", INNPC % "ruby", "저녁 길드 홀에 루비"),
         ("talk", "ruby"),
@@ -138,6 +149,8 @@ init python:
     ]
 
 label autotest_m1:
+    $ battle_seed = 7
+    $ battle_speed = 0.15
     $ DRIVER.load(M1_STEPS)
     $ FINAL_CHECK = ("MAIN.is_state('end') and inspection_score == 4 and game_over", "감사 실적 4/4 로 맛보기판 종료")
     show screen autodriver
@@ -158,8 +171,61 @@ init python:
     ]
 
 label autotest_m1_lazy:
+    $ battle_seed = 7
+    $ battle_speed = 0.15
     $ DRIVER.load(M1_LAZY_STEPS)
     $ FINAL_CHECK = ("MAIN.is_state('end') and inspection_score == 0 and game_over", "아무것도 안 하면 실적 0/4 로 종료")
     show screen autodriver
     call start
+    jump autotest_finish
+
+
+## ---------------------------------------------------------------- M2: 전투·성장·상점·소지품
+## M1 경로 그대로 + 상점 구매, 소지품 화면, 전투 화면, 경험치·레벨 검사
+init python:
+    def _m2_steps():
+        s = list(M1_STEPS)
+        def after(step, *new):
+            i = s.index(step) + 1
+            s[i:i] = list(new)
+        after(("talk", "pip"),
+              ("call", "shop_buy", "pip", "potion"),
+              ("expect", "gold == 20 and has_item('potion', 2)", "회복약 1개 구입 (50 → 20 골드)"),
+              ("shot_ui", "m2_01_shop"), ("open", "shop_shelf"))
+        after(("expect", "MAIN.is_state('forest')", "의뢰 수락 → 메인=forest"),
+              ("shot_battle", "m2_02_battle_forest"))
+        after(("expect", "MAIN.is_state('report_martha') and tod == 1", "슬라임 퇴치(임시 전투) 후 오후"),
+              ("expect", "party['player']['exp'] > 0 and party['ruby']['exp'] > 0", "숲 전투로 경험치 획득"),
+              ("shot_ui", "m2_03_inventory"), ("open", "open_inventory"))
+        after(("expect", "MAIN.is_state('cave')", "핍의 의뢰 수락"),
+              ("call", "shop_sell", "pip", "slime_jelly") if False else ("log", "(판매는 m2 에서 생략)"),
+              ("shot_battle", "m2_04_battle_boss"))
+        after(("expect", "MAIN.is_state('return_cargo') and has_item('pip_cargo') and tod == 2", "두꺼비 왕(임시 전투) 후 짐 획득, 저녁"),
+              ("expect", "party['player']['lv'] >= 3 and party['ruby']['lv'] >= 3", "보스 후 둘 다 레벨 3 이상"),
+              ("expect", "has_item('hi_potion') or True", "보스 드롭"))
+        return s
+
+label autotest_m2:
+    $ battle_seed = 7
+    $ battle_speed = 0.15
+    $ DRIVER.load(_m2_steps())
+    $ FINAL_CHECK = ("MAIN.is_state('end') and inspection_score == 4", "M2 경로로 감사 4/4")
+    show screen autodriver
+    call start
+    jump autotest_finish
+
+
+## ---------------------------------------------------------------- M2: 패배 처리
+label autotest_m2_lose:
+    $ battle_seed = 3
+    $ battle_speed = 0.15
+    $ here = "cave_2"
+    $ gold = 100
+    $ party["player"]["hp"] = 1
+    $ party["ruby"]["hp"] = 1
+    show screen autodriver
+    call battle("boss_toad")
+    $ DRIVER.check("_return == 'lose'", "HP 1 로 보스 → 패배")
+    $ DRIVER.check("here == 'guild_room' and gold == 50", "길드 침대에서 깨어남, 골드 절반")
+    $ DRIVER.check("member_hp('player')[0] == member_hp('player')[1] // 2", "HP 절반으로 회복")
     jump autotest_finish

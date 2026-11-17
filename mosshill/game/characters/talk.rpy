@@ -107,7 +107,7 @@ label pip_talk:
         $ MAIN.trigger("T_cargo")
 
     else:
-        p "어서 오세요~ 물건 구경은 진열장에서! (상점은 M2 에서 열립니다)"
+        p "어서 오세요~ 물건 구경은 진열장에서! 슬라임 젤리나 고블린 송곳니도 사들여요."
 
     hide pip
     with dissolve

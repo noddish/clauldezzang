@@ -71,7 +71,7 @@ label tavern_cellar:
     jump main_loop
 
 label shop_shelf:
-    think "회복약, 해독초, 철검… 상점은 M2 에서 열린다."
+    call screen shop_view("pip")
     jump main_loop
 
 
@@ -82,7 +82,7 @@ label enter_forest(first=False):
         with dissolve
         r "저기 봐, 슬라임이야! 길드장님, 첫 실전이지? 내 뒤에 바짝 붙어!"
         hide ruby
-        call battle("forest")
+        call battle("forest", group=1)
         if _return == "win":
             $ MAIN.trigger("T_slimes_done")
             $ tick()
@@ -94,13 +94,18 @@ label enter_forest(first=False):
     return
 
 label forest_bush:
-    think "수풀을 헤쳐 봤다. (임의 조우는 M2 에서)"
+    think "수풀을 헤쳐 봤다…"
+    call battle("forest")
+    $ tick()
     jump main_loop
 
 label enter_cave_1(first=False):
     if first:
         think "축축하고 미끄러운 동굴이다. 벽의 이끼가 희미하게 빛난다."
         $ tick()
+    if encounter_roll("cave_1"):
+        n "어둠 속에서 무언가 다가온다!"
+        call battle("cave_1")
     return
 
 label cave_chest:

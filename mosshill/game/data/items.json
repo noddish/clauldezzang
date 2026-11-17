@@ -1,19 +1,137 @@
 {
-  "potion":       {"name": "회복약",       "type": "consumable", "price": 30,  "desc": "HP를 40 회복한다.",                 "effect": {"heal_hp": 40}, "target": "ally"},
-  "hi_potion":    {"name": "고급 회복약",  "type": "consumable", "price": 80,  "desc": "HP를 100 회복한다.",                "effect": {"heal_hp": 100}, "target": "ally"},
-  "ether":        {"name": "마나 물약",    "type": "consumable", "price": 50,  "desc": "MP를 20 회복한다.",                 "effect": {"heal_mp": 20}, "target": "ally"},
-  "antidote":     {"name": "해독초",       "type": "consumable", "price": 15,  "desc": "독을 치료한다.",                    "effect": {"cure": "poison"}, "target": "ally"},
-  "bomb":         {"name": "연기 폭탄",    "type": "consumable", "price": 60,  "desc": "적 전체에게 20 피해.",              "effect": {"damage": 20}, "target": "all_enemies"},
-
-  "short_sword":  {"name": "낡은 단검",    "type": "weapon",    "price": 0,   "desc": "삼촌이 남긴 단검.",                  "stats": {"atk": 3}},
-  "iron_sword":   {"name": "철검",         "type": "weapon",    "price": 150, "desc": "평범하지만 믿을 만한 검.",           "stats": {"atk": 7}},
-  "leather_vest": {"name": "가죽 조끼",    "type": "armor",     "price": 0,   "desc": "기본 방어구.",                       "stats": {"def": 2}},
-  "chain_vest":   {"name": "사슬 조끼",    "type": "armor",     "price": 180, "desc": "무겁지만 단단하다.",                 "stats": {"def": 6, "spd": -1}},
-  "lucky_charm":  {"name": "행운의 부적",  "type": "accessory", "price": 120, "desc": "속도가 조금 오른다.",                "stats": {"spd": 2}},
-
-  "flint":        {"name": "루비의 부싯돌", "type": "key",      "price": 0,   "desc": "루비가 아끼는 부싯돌. 돌려주자."},
-  "pip_cargo":    {"name": "핍의 짐 꾸러미", "type": "key",     "price": 0,   "desc": "동굴에서 찾은 핍의 짐."},
-  "guild_notice": {"name": "감사 통지서",   "type": "key",      "price": 0,   "desc": "3일 뒤 감사. 실적 없으면 면허 취소."},
-  "slime_jelly":  {"name": "슬라임 젤리",   "type": "material", "price": 5,   "desc": "끈적하다. 핍이 사 간다."},
-  "goblin_fang":  {"name": "고블린 송곳니", "type": "material", "price": 12,  "desc": "고블린을 퇴치한 증거."}
+ "potion": {
+  "name": "회복약",
+  "type": "consumable",
+  "price": 30,
+  "desc": "HP를 40 회복한다.",
+  "effect": {
+   "heal_hp": 40
+  },
+  "target": "ally"
+ },
+ "hi_potion": {
+  "name": "고급 회복약",
+  "type": "consumable",
+  "price": 80,
+  "desc": "HP를 100 회복한다.",
+  "effect": {
+   "heal_hp": 100
+  },
+  "target": "ally"
+ },
+ "ether": {
+  "name": "마나 물약",
+  "type": "consumable",
+  "price": 50,
+  "desc": "MP를 20 회복한다.",
+  "effect": {
+   "heal_mp": 20
+  },
+  "target": "ally"
+ },
+ "antidote": {
+  "name": "해독초",
+  "type": "consumable",
+  "price": 15,
+  "desc": "독을 치료한다.",
+  "effect": {
+   "cure": "poison"
+  },
+  "target": "ally"
+ },
+ "bomb": {
+  "name": "연기 폭탄",
+  "type": "consumable",
+  "price": 60,
+  "desc": "적 전체에게 20 피해.",
+  "effect": {
+   "damage": 20
+  },
+  "target": "all_enemies"
+ },
+ "short_sword": {
+  "name": "낡은 단검",
+  "type": "weapon",
+  "price": 0,
+  "desc": "삼촌이 남긴 단검.",
+  "stats": {
+   "atk": 3
+  }
+ },
+ "iron_sword": {
+  "name": "철검",
+  "type": "weapon",
+  "price": 150,
+  "desc": "평범하지만 믿을 만한 검.",
+  "stats": {
+   "atk": 7
+  }
+ },
+ "leather_vest": {
+  "name": "가죽 조끼",
+  "type": "armor",
+  "price": 0,
+  "desc": "기본 방어구.",
+  "stats": {
+   "def": 2
+  }
+ },
+ "chain_vest": {
+  "name": "사슬 조끼",
+  "type": "armor",
+  "price": 180,
+  "desc": "무겁지만 단단하다.",
+  "stats": {
+   "def": 6,
+   "spd": -1
+  }
+ },
+ "lucky_charm": {
+  "name": "행운의 부적",
+  "type": "accessory",
+  "price": 120,
+  "desc": "속도가 조금 오른다.",
+  "stats": {
+   "spd": 2
+  }
+ },
+ "flint": {
+  "name": "루비의 부싯돌",
+  "type": "key",
+  "price": 0,
+  "desc": "루비가 아끼는 부싯돌. 돌려주자."
+ },
+ "pip_cargo": {
+  "name": "핍의 짐 꾸러미",
+  "type": "key",
+  "price": 0,
+  "desc": "동굴에서 찾은 핍의 짐."
+ },
+ "guild_notice": {
+  "name": "감사 통지서",
+  "type": "key",
+  "price": 0,
+  "desc": "3일 뒤 감사. 실적 없으면 면허 취소."
+ },
+ "slime_jelly": {
+  "name": "슬라임 젤리",
+  "type": "material",
+  "price": 5,
+  "desc": "끈적하다. 핍이 사 간다."
+ },
+ "goblin_fang": {
+  "name": "고블린 송곳니",
+  "type": "material",
+  "price": 12,
+  "desc": "고블린을 퇴치한 증거."
+ },
+ "ruby_blade": {
+  "name": "루비의 검",
+  "type": "weapon",
+  "price": 0,
+  "desc": "루비가 아끼는 한손검.",
+  "stats": {
+   "atk": 4
+  }
+ }
 }

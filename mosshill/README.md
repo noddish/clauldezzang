@@ -18,6 +18,15 @@ tools/run_autotest.sh m1 /tmp/shots ~/renpy-8.3.7-sdk
 | `m0` | 데이터 파일 상호 참조 검사, 루비 표정·입 움직임 |
 | `m1` | 3일 전체 자동 플레이: 메인 + 서브 2개, 잠김 규칙 3개, 강제 감사 → 실적 4/4 |
 | `m1_lazy` | 아무 의뢰도 안 하고 잠만 잤을 때 → 3일차 감사가 강제로 열리고 0/4 |
+| `m2` | m1 경로를 진짜 전투로 + 상점 구매, 소지품 화면, 경험치·레벨 검사 |
+| `m2_lose` | HP 1 로 보스전 → 패배 처리 (길드에서 깨어남, 골드 절반, HP 절반) |
+
+Ren'Py 없이 도는 검사:
+
+```bash
+python3 tools/test_engine.py        # 전투 엔진 단위 테스트 (피해 공식, 방어, 약점, 독, 도발, 레벨업 …)
+python3 tools/balance_sim.py 5000   # 밸런스 시뮬레이터 → 결과는 docs/balance_report.txt
+```
 
 - 문법 검사(lint) → 가상 화면에서 게임 실행 → 스크린샷과 `autotest.log` 를 `/tmp/shots` 에 저장.
 - Linux 는 `xvfb-run` 이 필요하다. 테스트 내용은 `game/dev/autotest.rpy` 의 `label autotest_<이름>`.
@@ -29,7 +38,7 @@ tools/run_autotest.sh m1 /tmp/shots ~/renpy-8.3.7-sdk
 |---|---|
 | M0 뼈대 (폴더, 루비, 데이터 틀, 자동 검사) | 완료 |
 | M1 마을 시스템 (시간, 장소, 지도, 잠김 규칙, 퀘스트 4개, HUD, 자동 플레이어) | 완료 — 임시 회색 배경 |
-| M2 전투 시스템 | |
+| M2 전투 시스템 (파티 턴제, 스킬·상태이상, 레벨업, 장비, 소지품·상점 화면, 밸런스 시뮬레이터) | 완료 — 임시 그림 |
 | M3 아트 | |
 | M4 이야기 | |
 | M5 다듬기 | |
@@ -40,15 +49,27 @@ tools/run_autotest.sh m1 /tmp/shots ~/renpy-8.3.7-sdk
 |---|---|
 | `game/core/` | 설정, 데이터 로더, 시간, 장소·메인 루프, 잠김 규칙, 퀘스트 머신, 신뢰도 |
 | `game/locations/` | 장소 트리·물건 목록(`world.rpy`), 진입 이벤트·물건 클릭(`events.rpy`) |
-| `game/rpg/` | 소지품·골드, 전투 임시판 (M2 에서 파티 턴제) |
+| `game/rpg/` | 파티, 전투 화면·연출, 소지품·장비 화면, 상점 |
+| `game/python-packages/mhrpg/` | 전투·성장 계산 엔진 (순수 파이썬 — 게임과 시뮬레이터가 같이 씀) |
 | `game/ui/` | 모션(ATL), HUD |
 | `game/characters/` | 루비 그림, NPC 임시 그림(`npcs.rpy`), 대화(`talk.rpy`), 주인공 |
 | `game/story/` | 1일차 도입, 퀘스트 단계·NPC 위치표(`quests.rpy`) |
 | `game/data/` | 아이템·스킬·적·조우표·상점·레벨업 표 (JSON) |
 | `game/dev/` | 자동 검사(`autotest.rpy`), 자동 플레이어(`autodrive.rpy`) |
-| `tools/` | 자동 검사 실행 스크립트 등 |
+| `tools/` | 자동 검사 실행, 엔진 테스트, 밸런스 시뮬레이터 |
 
 ## 에셋
 
 - 루비: `game/images/characters/ruby/` — 몸 1장 + 표정 6장 (480×720). 이 프로젝트의 **화풍 기준**.
 - 그 외 그림은 M3 에서 기획서 7장 목록대로 만든다. 그 전에는 회색 임시 배경(`Placeholder`)을 쓴다.
+
+## 밸런스 (M2 기준, `docs/balance_report.txt`)
+
+| 준비 정도 | 두꺼비 왕 승률 |
+|---|---|
+| 서브 퀘스트 없음 | 약 63% |
+| 창고 서브만 | 약 84% |
+| 서브 둘 다 (불꽃베기 해금) | 약 95% |
+| 서브 둘 다 + 회복약 2 | 약 97% |
+
+일반 전투는 승률 100%, 이겼을 때 남은 HP 65~88%. 수치는 `game/data/*.json` 에서 고치고 시뮬레이터로 확인한다.

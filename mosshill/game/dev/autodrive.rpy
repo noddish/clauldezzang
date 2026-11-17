@@ -13,6 +13,11 @@
 ##       ("expect", "식", "설명") 식이 참인지 검사해 PASS/FAIL 기록
 ##       ("choose", 번호)        다음 선택지에서 고를 번호
 ##       ("shot_say", 이름)      다음에 나오는 대사 장면을 스크린샷
+##       ("shot_battle", 이름)   다음 전투 명령 화면을 스크린샷
+##       ("shot_ui", 이름)       다음에 여는 상점·소지품 화면을 스크린샷
+##       ("open", 라벨)          상점·소지품 화면 열기 (자동으로 닫힘)
+##       ("call", "함수", 인자…)  구매·장착 같은 동작을 직접 실행
+##   전투 명령 화면에서는 mhrpg.ally_command (평범한 플레이어 흉내)로 행동한다.
 ## ============================================================================
 
 init -45 python:
@@ -28,6 +33,10 @@ init -45 python:
             self.last_action = 0.0
             self.say_shot = None
             self.say_seen = None
+            self.battle_shot = None
+            self.ui_shot = None
+            self.ui_seen = None
+            self.battles = 0
 
         def load(self, steps):
             self.steps = list(steps)
@@ -73,6 +82,31 @@ init -45 python:
                 self.next_choice = None
                 self.log("  choose %d: %s" % (n, items[n].caption))
                 return items[n].action()
+            bc = renpy.get_screen("battle_command")
+            if bc:
+                if self.battle_shot:
+                    if self.ui_seen is None:
+                        self.ui_seen = now
+                    if now - self.ui_seen < 0.6:
+                        return None
+                    _do_shot(self.battle_shot)
+                    self.log("  shot  " + self.battle_shot)
+                    self.battle_shot = None
+                    self.ui_seen = None
+                b, actor = bc.scope["b"], bc.scope["actor"]
+                return mhrpg.ally_command(b, actor)       # 평범한 플레이어처럼 행동
+            for scr in ("shop_view", "inventory_view"):
+                if renpy.get_screen(scr):
+                    if self.ui_seen is None:
+                        self.ui_seen = now
+                    if now - self.ui_seen < 0.6:
+                        return None
+                    if self.ui_shot:
+                        _do_shot(self.ui_shot)
+                        self.log("  shot  " + self.ui_shot)
+                        self.ui_shot = None
+                    self.ui_seen = None
+                    return True                            # 화면 닫기
             if not renpy.get_screen("location_view"):
                 return None
             if now - self.last_action < 0.7:     # 화면 전환(dissolve)이 끝날 때까지
@@ -90,6 +124,13 @@ init -45 python:
                     self.next_choice = step[1]
                 elif kind == "shot_say":
                     self.say_shot = step[1]
+                elif kind == "shot_battle":
+                    self.battle_shot = step[1]
+                elif kind == "shot_ui":
+                    self.ui_shot = step[1]
+                elif kind == "call":                       # 파이썬 함수 직접 실행 (구매·장착 등)
+                    self.log("call  %s%r" % (step[1], tuple(step[2:])))
+                    eval(step[1], store.__dict__)(*step[2:])
                 elif kind == "log":
                     self.log(step[1])
                 else:
@@ -115,6 +156,9 @@ init -45 python:
                 self.failed += 1
                 self.log("  FAIL  여기 없는 인물: %s @ %s (%s)" % (step[1], store.here, TODS[store.tod]))
                 return None
+            if kind == "open":                             # 라벨로 이동해 화면 열기 (상점·소지품)
+                self.log("open  " + step[1])
+                renpy.jump(step[1])
             if kind == "wait":
                 self.log("wait  %s" % TODS[store.tod])
                 return WaitTick()()
