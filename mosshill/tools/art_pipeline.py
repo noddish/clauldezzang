@@ -64,7 +64,7 @@ def do_bg(raw):
 CHARS = {
     "ruby":   {"faces": ["happy", "angry", "sad", "surprised", "blink", "talk"], "face_box": (260, 150, 740, 540)},
     "kai":    {"faces": ["happy", "surprised", "sad", "angry", "talk"], "face_box": (400, 140, 730, 480)},
-    "martha": {"faces": ["happy", "angry", "surprised", "talk"],        "face_box": (260, 160, 630, 520)},
+    "martha": {"faces": ["happy", "angry", "surprised", "talk"],        "face_box": (230, 140, 590, 470)},
     "pip":    {"faces": ["happy", "sad", "surprised", "talk"],          "face_box": (300, 380, 630, 740),
                "frame": (1.3, 427)},
     "gregor": {"faces": ["happy", "angry", "talk"],                     "face_box": (290, 110, 620, 480)},

@@ -12,7 +12,7 @@
 | 루비 (예전) | `img_mwjcm7u5W3q5maZ1` | 붓칠이 부드러운 예전 그림체 — 쓰지 않음 |
 | **배경 화풍 기준 — 길드 홀** | `img_mwjzz6ejUwIEo3A9` | 모든 배경에 넣는다 |
 | 카이 | `img_mwk04ey99961j7GF` | 몸 (오른쪽을 봄) |
-| 마르타 (예전) | `img_mwk04p3zc4tZ1Zln` | 루비와 닮아서 교체 예정 |
+| 마르타 (예전) | `img_mwk04p3zc4tZ1Zln` | 루비와 닮아서 교체됨 → 지금 마르타는 콘셉트 01 레나 |
 | 마르타 새 후보 A / B / C | `img_mwk3t4rvcZF5sLeh` / `img_mwk3tedn5xGs0gof` / `img_mwk3tqbznKRo5MH0` | A 은퇴한 모험가 / B 푸근한 아줌마 / C 키 큰 무뚝뚝한 사장 |
 | 마르타 성숙한 후보 1 / 2 | `img_mwk4etfk9wjDt7JE` / `img_mwk4f33wxOsIhdvF` | 1 화려한 사장님 / 2 다정하게 놀리는 누님 |
 | 마르타 매혹적인 후보 3 / 4 | `img_mwk4iohqq12tH346` / `img_mwk4iwruJiDxqgw5` | 3 = 1번을 고쳐 분위기만 (머리 만지는 손, 나른한 눈) / 4 = 1번 얼굴 견본으로 새로 |
@@ -78,18 +78,16 @@
 | 장면 인물 눈 색이 바뀜 | 인물 견본 없이 얼굴을 다시 그림 | 인물 몸을 2번 견본으로 넣는다 |
 | 영역 지정(마스크) 편집 실패 | 이미지 서버가 마스크를 거부 ("Invalid image data") | 마스크 없이 "~만 바꿔"로 그리고 `art_pipeline.py` 가 바뀐 곳만 오린다 |
 
-## 5. 다음에 이어서 할 생성 (2026-11-17, 이미지 서버 하루 호출 한도 100회에 걸려 멈춤)
+## 5. 지금 게임에 들어간 그림의 원본 id (2026-11-17)
 
-마르타 = 콘셉트 01 레나 (`img_mwk4pph0U68HMxxT`). 이름은 그대로 '마르타'. 모든 프롬프트는 3장의 틀(ROLES/KEEP/CHANGE/STYLE/AVOID)로.
+| 그림 | id |
+|---|---|
+| 마르타 몸 (= 콘셉트 01 레나) | `img_mwk4pph0U68HMxxT` |
+| 마르타 표정 기쁨 / 화남 / 놀람 / 말하기 | `img_mwk5fs1nykP7cvOp` / `img_mwk5gla19Zqx0u4w` / `img_mwk5gvn65H1AW9uM` / `img_mwk5h46bAJqzY5hq` |
+| 부엌 루비 하던 일 / 앞을 봄 | `img_mwk5hezcIrN7DtBx` / `img_mwk5jczt53x58vs3` |
+| 길드 홀 루비 하던 일 / 앞을 봄 | `img_mwk5hr8xDOZxF9XX` / `img_mwk5jmu6Kyg4DqKt` |
+| 선술집 마르타 하던 일 / 앞을 봄 | `img_mwk5j435FcIsnrxc` / `img_mwk5km91c4vFLr9N` |
+| 잡화점 핍 하던 일 / 앞을 봄 | `img_mwk33ey2wlWuSMdW` / `img_mwk5jw0haA2K3O6t` |
+| 광장 핍 하던 일 / 앞을 봄 | `img_mwk33ndtudBcVSua` / `img_mwk5k5pahNQbqgsf` |
 
-| 순서 | 만들 것 | 1번 (고칠 대상) | 견본 | 바꿀 것 |
-|---|---|---|---|---|
-| 1~4 | 마르타 표정 기쁨·화남·놀람·말하기 | 레나 | 카이 (그림체) | 표정만 (말하기는 입만 — 기본 얼굴이 이미 활짝 웃는 입이라 '말하는 둥근 입'으로) |
-| 5 | 부엌 루비 '하던 일' | 부엌 배경 `img_mwk00ppuKfGbnYrw` | 새 루비 `img_mwk42de2VhNaQR34` + 카이 | 식탁 뒤에서 당근 썰기, 고개 숙이고 도마를 봄 |
-| 6 | 길드 홀 루비 '하던 일' | 길드 홀 `img_mwjzz6ejUwIEo3A9` | 새 루비 + 카이 | 의자에 앉아 무릎 위 칼을 닦음, 칼날을 봄 |
-| 7 | 선술집 마르타 '하던 일' | 선술집 `img_mwk01nibyD82wGX9` | 레나 + 카이 | 바 뒤에서 잔을 닦음, 잔을 봄 |
-| 8~9 | 잡화점·광장 핍 '앞을 봄' | 핍 하던 일 장면 `img_mwk33ey2wlWuSMdW` / `img_mwk33ndtudBcVSua` | 핍 몸 `img_mwk04yuwDl5LkiiB` | 눈과 입만 — 고개는 그대로, 눈만 들어 앞을 보고 작은 미소 |
-| 10~12 | 5·6·7 의 '앞을 봄' | 5·6·7 결과 | 그 인물 몸 | 8~9 와 같음 |
-
-생성 뒤 할 일: `원본폴더/martha.png` 를 레나로 바꾸고 `art_pipeline.py` 의 마르타 `face_box` 를 다시 잰다 → `sprite face` (점검용 그림 확인) →
-장면 5곳 `scene_<장소>_<인물>_busy/look.png` 교체 → `art_scenes.json` 의 box·shape 를 새 인물 위치로 다시 잰다 → `scene` → 전체 자동 검사.
+이미지 서버 제한: **하루 100회, 분당 6회**. 여러 장은 6장씩 나눠 보낸다.
