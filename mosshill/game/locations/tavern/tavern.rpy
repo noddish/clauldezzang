@@ -5,12 +5,12 @@
 init -5 python:
     place("tavern", "선술집 '졸린 곰'", parent="map")
     OBJECTS["tavern"] = [
-        Obj("exit",   (0, 131, 196, 357),   MoveTo("map"),             "밖으로"),
-        Obj("board",  (259, 160, 240, 216), Interact("tavern_board"),  "의뢰 게시판"),
-        Obj("cellar", (1115, 356, 148, 139), Interact("tavern_cellar"), "지하 창고",
+        Obj("exit",   (0, 74, 161, 532),   MoveTo("map"),             "밖으로"),
+        Obj("board",  (222, 142, 161, 244), Interact("tavern_board"),  "의뢰 게시판"),
+        Obj("cellar", (1125, 385, 155, 204), Interact("tavern_cellar"), "지하 창고",
             when=lambda: MARTHA.is_state("cellar")),
     ]
-    NPC_SPOTS["tavern"] = {"martha": 0.68}        # 바 뒤에서 잔 닦기
+    NPC_SPOTS["tavern"] = {"martha": 0.55}        # 바 뒤에서 잔 닦기
 
 label tavern_board:
     if MAIN.is_state("board"):

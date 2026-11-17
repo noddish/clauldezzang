@@ -126,7 +126,10 @@ def register(body, ex, box):
         if (s, k) not in cache:
             a = np.asarray(ga.resize((ga.width // k, ga.height // k)), np.float32)
             b = np.asarray(ge.resize((round(ge.width * s / k), round(ge.height * s / k))), np.float32)
-            cache[(s, k)] = (a, np.pad(b, PAD // k, constant_values=255))
+            p = PAD // k                    # 줄인 그림이 원본보다 작아도 비교 범위가 모자라지 않게 흰색으로 채운다
+            full = np.full((max(a.shape[0], b.shape[0]) + 2 * p, max(a.shape[1], b.shape[1]) + 2 * p), 255, np.float32)
+            full[p:p + b.shape[0], p:p + b.shape[1]] = b
+            cache[(s, k)] = (a, full)
         return cache[(s, k)]
 
     def cost(s, dx, dy, k):
@@ -295,6 +298,11 @@ def do_object(raw):
 ##   shadow    true 면 발밑 그림자 (바닥에 놓인 전신)
 ##   fit_cut   맞출 때 비교를 멈출 y (1) 그림에서 가구에 가려진 선이 cut 과 다를 때, 기본은 cut)
 ##   fit_upper 실루엣 위쪽 몇 %로 맞출지 (기본 0.6). 단독 그림의 머리 비율이 1) 과 다르면 줄여서 머리 위주로 맞춘다
+##   scale     맞춘 뒤 크기 보정 (AI 는 1) 에서 인물을 실제보다 크게 그리는 버릇이 있다).
+##             cut(가구 윗면) 높이와 실루엣 가운데를 기준으로 줄여서, 가구가 몸의 같은 곳(허리 등)을 가리게 한다
+##   check     비율 검사 {"floor": 가구 뒤 바닥 y, "furniture_cm": 가구 높이, "height_cm": 인물 키, "hair_cm": 위로 솟은 머리(선택)}
+##             → 가구 높이로 1cm 가 몇 px 인지 재서, 가구 위로 보이는 몸 길이가 실제(키 - 가구 높이)의 몇 배인지 출력.
+##             1.25배를 넘거나 0.8배 아래면 '확인 필요' 와 맞는 scale 값을 알려 준다
 ## 결과: scene_<장소>_<인물>_<busy|look>_<day|night>.png (화면 크기, 인물만 불투명)
 ##       mask_scene_<장소>_<인물>.png (클릭 모양 = 인물 실루엣)
 SCENE_STATES = ("busy", "look")
@@ -379,6 +387,8 @@ def look_from_busy(busy, look):
     area = area.filter(ImageFilter.GaussianBlur(10))
     diff = ImageChops.difference(gray_on_white(busy), gray_on_white(look)).filter(ImageFilter.GaussianBlur(2))
     mask = ImageChops.multiply(diff.point(lambda v: 255 if v > 14 else 0).filter(ImageFilter.MaxFilter(15)), area)
+    ## busy 가 불투명한 곳(얼굴·머리) 안에서만 — look 그림의 투명 배경에 남은 옅은 얼룩이 끼어들지 않게
+    mask = ImageChops.multiply(mask, busy.getchannel("A").point(lambda v: 255 if v > 128 else 0).filter(ImageFilter.MinFilter(3)))
     piece = look.copy()
     piece.putalpha(ImageChops.multiply(mask.filter(ImageFilter.GaussianBlur(5)), look.getchannel("A")))
     out = busy.copy()
@@ -440,6 +450,11 @@ def do_scene(raw):
             ref = screen_of(os.path.join(raw, "scene_%s_%s_busy.png" % (loc, who)))
             sil = ref_silhouette(bg, ref, pl["ref"])
             fit, k, ox, oy = fit_to(sil, pose["busy"], pl.get("fit_cut", pl.get("cut")), pl.get("fit_upper", 0.6))
+            if pl.get("scale", 1.0) != 1.0:
+                sc, (sy, sx) = pl["scale"], np.nonzero(sil)
+                ax = (sx.min() + sx.max()) / 2
+                ay = pl["cut"] if pl.get("cut") is not None else sy.max()
+                k, ox, oy = k * sc, ax - (ax - ox) * sc, ay - (ay - oy) * sc
             px = np.asarray(ref).astype(np.float32)[sil]
             color = (px.mean(axis=0), px.std(axis=0))
             layers = {st: place_char(pose[st], k, ox, oy, pl, color) for st in SCENE_STATES}
@@ -454,8 +469,16 @@ def do_scene(raw):
             shape = sil.point(lambda v: 1 if v > 150 else 0).convert("P")      # 그림자(옅음)는 빼고 인물만
             shape.putpalette([0, 0, 0, 255, 255, 255])
             shape.save(os.path.join(out, "mask_scene_%s_%s.png" % (loc, who)), transparency=0, optimize=True)
-            print("scene %-14s %-7s 겹침(IoU)=%.2f 배율=%.3f 화면 위치=%s" % (
-                loc, who, fit, k, ImageChops.lighter(layers["busy"].getchannel("A"), layers["look"].getchannel("A")).getbbox()))
+            box = ImageChops.lighter(layers["busy"].getchannel("A"), layers["look"].getchannel("A")).getbbox()
+            print("scene %-14s %-7s 겹침(IoU)=%.2f 배율=%.3f 화면 위치=%s" % (loc, who, fit, k, box))
+            ck = pl.get("check")
+            if ck and pl.get("cut") is not None:
+                px_cm = (ck["floor"] - pl["cut"]) / ck["furniture_cm"]
+                seen = (pl["cut"] - box[1]) / px_cm
+                want = ck["height_cm"] - ck["furniture_cm"] + ck.get("hair_cm", 0)      # hair_cm: 머리 위로 솟은 머리카락
+                ratio = seen / want
+                warn = "" if 0.8 <= ratio <= 1.25 else "  ← 확인 필요: scale 을 %.2f 로" % (pl.get("scale", 1.0) / ratio)
+                print("      비율: 가구 위로 보이는 몸 %.0fcm (실제라면 %.0fcm) = %.2f배%s" % (seen, want, ratio, warn))
 
 
 STEPS = {"bg": do_bg, "sprite": do_sprite, "face": do_face, "enemy": do_enemy,

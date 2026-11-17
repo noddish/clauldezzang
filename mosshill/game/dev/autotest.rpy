@@ -213,9 +213,12 @@ init python:
         ("expect", "here == 'map'", "의뢰 전에는 숲이 잠김"),
         ("click", "shop"),
         ("expect", "here == 'shop' and " + INNPC % "pip", "아침 잡화점에 핍"),
+        ("sleep", 1.2),
+        ("shot", "m1_03b_shop_pip"),                    # 계산대 너머로 금화를 살피다 눈을 들어 봄
         ("talk", "pip"), ("click", "exit"),
         ("click", "tavern"),
         ("expect", INNPC % "martha", "선술집에 마르타"),
+        ("sleep", 1.2),
         ("shot", "m1_04_tavern"),
         ("shot_say", "m1_04b_board_think"),             # 혼잣말 — 카이가 왼쪽에 나오고 마르타는 그대로
         ("click", "board"),
