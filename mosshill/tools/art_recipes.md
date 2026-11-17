@@ -19,6 +19,7 @@
 | 마르타 매혹적인 후보 3·4 얼굴 부드럽게 | `img_mwk4lev6V6ZxHKtp` / `img_mwk4lnxmpxNW9dCD` | 턱선·광대를 둥글게 ("얼굴이 너무 각졌다") |
 | 핍 | `img_mwk04yuwDl5LkiiB` | 몸 (전신, 작게) |
 | 그레고르 | `img_mwk05a0vTrlhPirv` | 몸. 이 화풍에서 **나이(주름)를 그리는 법**의 견본 |
+| 여성 후보 10명 (40세 미만) | 레나 `img_mwk4pph0U68HMxxT` · 이졸데 `img_mwk4pwg3bFu67AQ1` · 자라 `img_mwk4q7t4iIdGqDBx` · 하나 `img_mwk4qgtywx6u2ZP6` · 브리짓 `img_mwk4qogq5pn4Z3jN` · 셀레스트 `img_mwk4smg88Psimnwd` · 엘로디 `img_mwk4stgr8dxk6OMC` · 닉스 `img_mwk4rh90Gge9A6ra` · 로사 `img_mwk4rns6l3dnN338` · 세라핀 `img_mwk4rv56xs6vpHgX` | 카이 견본 하나로 처음부터. 나이 든 인물은 만들지 않는다 (40세 미만) |
 | 배경: 내 방 / 부엌 / 길드 앞 | `img_mwk00f9bvTm6XvLx` / `img_mwk00ppuKfGbnYrw` / `img_mwk010ifbr0lNxiK` | |
 | 배경: 광장 / 선술집 / 잡화점 | `img_mwk01cc9WcxxfKxh` / `img_mwk01nibyD82wGX9` / `img_mwk020slS8bQPtdR` | |
 | 배경: 숲 / 동굴1 / 동굴2 / 지도 | `img_mwk02c108Sm3wYz9` / `img_mwk02mmcAUfpVboO` / `img_mwk02zsd7TnAykBH` / `img_mwk03bkheoQNSpy0` | |
