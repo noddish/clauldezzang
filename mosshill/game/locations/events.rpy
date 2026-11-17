@@ -78,17 +78,21 @@ label shop_shelf:
 ## ---------------------------------------------------------------- 숲과 동굴
 label enter_forest(first=False):
     if MAIN.is_state("forest"):
+        show kai at stage_left
         show ruby at stage_right
         with dissolve
         r "저기 봐, 슬라임이야! 길드장님, 첫 실전이지? 내 뒤에 바짝 붙어!"
         hide ruby
+        hide kai
         call battle("forest", group=1)
         if _return == "win":
             $ MAIN.trigger("T_slimes_done")
             $ tick()
+            show kai happy at stage_left
             show ruby happy at stage_right
             r "해냈다! 마르타한테 보고하러 가자!"
             hide ruby
+            hide kai
     elif first:
         think "약초 냄새가 나는 숲길이다."
     return
@@ -117,9 +121,11 @@ label cave_chest:
 label enter_cave_2(first=False):
     if MAIN.is_state("cave"):
         n "동굴 가장 안쪽, 집채만 한 두꺼비가 짐 꾸러미를 깔고 앉아 있다."
+        show kai angry at stage_left
         show ruby angry at stage_right
         r "저 녀석이 핍의 짐을 깔고 앉았어! 가자!"
         hide ruby
+        hide kai
         call battle("boss_toad")
         if _return == "win":
             $ add_item("pip_cargo")
@@ -133,6 +139,7 @@ label day3_inspection:
     $ here = "guild_hall"
     scene expression location_bg(here)
     with fade
+    show kai at stage_left
     show gregor at stage_right
     g "모험가 협회 감사관 그레고르다. 이끼발굽 길드의 실적을 보고하게."
 

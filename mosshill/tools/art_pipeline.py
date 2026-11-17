@@ -7,7 +7,7 @@
     표정    <이름>_<표정>.png     같은 그림에서 표정만 바꾼 것
     적      <종류>.png            투명 배경
     아이템  items.png             4x4 칸
-    장소 인물 scene_<장소>_<인물>.png  배경 원본에 인물을 그려 넣은 것
+    장소 인물 scene_<장소>_<인물>_<busy|look>.png  배경 원본에 인물을 그려 넣은 것 (하던 일 / 앞을 봄)
 
     python3 tools/art_pipeline.py RAW all        # 전부
     python3 tools/art_pipeline.py RAW bg         # 배경만 (bg, sprite, face, enemy, icon, object, scene)
@@ -250,10 +250,15 @@ def do_object(raw):
 
 
 ## ---------------------------------------------------------------- 장소 안 인물
-## tools/art_scenes.json: {장소: {인물: {"box": [x0,y0,x1,y1], ...}}}
-## RAW/scene_<장소>_<인물>.png = 배경 원본에 인물을 그려 넣은 그림 (같은 구도).
+## tools/art_scenes.json: {장소: {인물: {"box": [x0,y0,x1,y1], "shape": 다각형, ...}}}
+## RAW/scene_<장소>_<인물>_<busy|look>.png = 배경 원본에 인물을 그려 넣은 그림 (같은 구도) 두 장.
+##   busy: 하던 일을 보고 있음 / look: 카이가 들어와서 앞(카메라)을 봄 — 들어갈 때 busy → look 으로 바뀐다.
 ## 원래 배경과 다른 곳 = 인물 → 화면 크기(1280x720) 투명 PNG 로 저장 (위치 정보가 따로 필요 없다).
+## 두 장은 '둘 중 하나라도 다른 곳'(합친 모양)으로 똑같이 오린다 → 겹쳐서 서서히 바꿔도 비치지 않는다.
 ## 식탁·계산대 뒤에 선 인물은 앞의 가구가 배경에 그대로 있으니 가려지는 것도 저절로 맞는다.
+SCENE_STATES = ("busy", "look")
+
+
 def largest_blob(m):
     """참/거짓 배열에서 가장 큰 덩어리만 남긴다 (4방향 연결)"""
     h, w = m.shape
@@ -280,6 +285,34 @@ def largest_blob(m):
     return out
 
 
+def match_colors(sc, bg, box):
+    """AI 가 인물을 그려 넣으면서 방 전체 색조를 살짝 바꾸는 일이 있다 (바닥에 네모난 경계가 생김).
+    인물 범위(box) 바깥은 원래 배경과 같아야 하므로, 그 부분으로 색 보정식(채널별 a*x+b)을 구해 그림 전체에 적용한다."""
+    a = np.asarray(sc, np.float32)
+    b = np.asarray(bg, np.float32)
+    x0, y0, x1, y1 = box
+    outside = np.ones(a.shape[:2], bool)
+    outside[max(0, y0 - 30):y1 + 30, max(0, x0 - 30):x1 + 30] = False
+    out = a.copy()
+    for c in range(3):
+        gain, offset = np.polyfit(a[..., c][outside], b[..., c][outside], 1)
+        out[..., c] = a[..., c] * gain + offset
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+
+
+def changed_mask(bg, sc, box):
+    """배경과 다른 곳: 색 차이 → 잡티 제거 → 틈 메우기 → 가장 큰 덩어리 → 속 구멍 채우기 (box 크기 L 그림)"""
+    d = np.asarray(ImageChops.difference(bg, sc).filter(ImageFilter.GaussianBlur(1.5))).max(axis=2)
+    m = Image.fromarray(((d > 24) * 255).astype(np.uint8)).crop(box)
+    m = m.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.MaxFilter(3))      # 잡티
+    m = m.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.MinFilter(9))      # 틈
+    m = Image.fromarray((largest_blob(np.asarray(m) > 0) * 255).astype(np.uint8))
+    pad = Image.new("L", (m.width + 2, m.height + 2), 0)                          # 구멍: 테두리에서 못 닿는 빈칸
+    pad.paste(m, (1, 1))
+    ImageDraw.floodfill(pad, (0, 0), 128)
+    return Image.fromarray(np.where(np.asarray(pad)[1:-1, 1:-1] == 128, 0, 255).astype(np.uint8))
+
+
 def do_scene(raw):
     with open(os.path.join(ROOT, "tools", "art_scenes.json"), encoding="utf-8") as f:
         spec = json.load(f)
@@ -290,37 +323,32 @@ def do_scene(raw):
             continue
         bg = Image.open(os.path.join(raw, loc + ".png")).convert("RGB").crop((0, 80, 1536, 944)).resize(SCREEN, Image.LANCZOS)
         for who, s in chars.items():
-            sc = Image.open(os.path.join(raw, "scene_%s_%s.png" % (loc, who))).convert("RGB")
-            sc = sc.crop((0, 80, 1536, 944)).resize(SCREEN, Image.LANCZOS)
-            x0, y0, x1, y1 = s["box"]
-            ## 다른 곳: 색 차이 → 잡티 제거 → 틈 메우기 → 가장 큰 덩어리 → 속 구멍 채우기
-            d = np.asarray(ImageChops.difference(bg, sc).filter(ImageFilter.GaussianBlur(1.5))).max(axis=2)
-            m = Image.fromarray(((d > 24) * 255).astype(np.uint8)).crop((x0, y0, x1, y1))
-            m = m.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.MaxFilter(3))      # 잡티
-            m = m.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.MinFilter(9))      # 틈
-            m = Image.fromarray((largest_blob(np.asarray(m) > 0) * 255).astype(np.uint8))
-            filled = m.copy()                                                            # 구멍: 테두리에서 못 닿는 빈칸
-            pad = Image.new("L", (filled.width + 2, filled.height + 2), 0)
-            pad.paste(filled, (1, 1))
-            ImageDraw.floodfill(pad, (0, 0), 128)
-            m = Image.fromarray(np.where(np.asarray(pad)[1:-1, 1:-1] == 128, 0, 255).astype(np.uint8))
+            box = tuple(s["box"])
+            scenes = {}
+            union = None
+            for st in SCENE_STATES:
+                sc = Image.open(os.path.join(raw, "scene_%s_%s_%s.png" % (loc, who, st))).convert("RGB")
+                scenes[st] = match_colors(sc.crop((0, 80, 1536, 944)).resize(SCREEN, Image.LANCZOS), bg, box)
+                m = changed_mask(bg, scenes[st], box)
+                union = m if union is None else ImageChops.lighter(union, m)
             alpha = Image.new("L", SCREEN, 0)
-            alpha.paste(m.filter(ImageFilter.GaussianBlur(1.2)), (x0, y0))
-            for tod, img in (("day", sc), ("night", night_filter(sc))):
-                piece = Image.new("RGBA", SCREEN, (0, 0, 0, 0))
-                piece.paste(img, (0, 0), alpha)
-                piece.putalpha(alpha)
-                piece.save(os.path.join(out, "scene_%s_%s_%s.png" % (loc, who, tod)), optimize=True)
+            alpha.paste(union.filter(ImageFilter.GaussianBlur(1.2)), box[:2])
+            for st, sc in scenes.items():
+                for tod, img in (("day", sc), ("night", night_filter(sc))):
+                    piece = Image.new("RGBA", SCREEN, (0, 0, 0, 0))
+                    piece.paste(img, (0, 0), alpha)
+                    piece.putalpha(alpha)
+                    piece.save(os.path.join(out, "scene_%s_%s_%s_%s.png" % (loc, who, st, tod)), optimize=True)
             ## 클릭·하이라이트 모양: 인물 윤곽 다각형 (화면 크기 1비트 PNG)
             shape = Image.new("P", SCREEN, 0)
             shape.putpalette([0, 0, 0, 255, 255, 255])
             ImageDraw.Draw(shape).polygon([tuple(p) for p in s["shape"]], fill=1)
             shape.save(os.path.join(out, "mask_scene_%s_%s.png" % (loc, who)), transparency=0, optimize=True)
-            outside = np.asarray(ImageChops.difference(bg, sc).convert("L")).astype(np.float32)
+            x0, y0, x1, y1 = box
+            outside = np.asarray(ImageChops.difference(scenes["busy"], scenes["look"]).convert("L")).astype(np.float32)
             outside[y0:y1, x0:x1] = np.nan
-            bb = alpha.getbbox()
-            print("scene %-14s %-7s 인물 영역=%s  상자 밖 차이=%.1f (작을수록 구도가 그대로)" % (
-                loc, who, bb, np.nanmean(outside)))
+            print("scene %-14s %-7s 인물 영역=%s  두 장면 상자 밖 차이=%.1f (작을수록 구도가 그대로)" % (
+                loc, who, alpha.getbbox(), np.nanmean(outside)))
 
 
 STEPS = {"bg": do_bg, "sprite": do_sprite, "face": do_face, "enemy": do_enemy,

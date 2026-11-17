@@ -9,6 +9,7 @@
 ##       ("click", 물건 id)     지금 장소에 보이는 물건을 실제로 클릭 (안 보이면 실패)
 ##       ("talk", 인물 id)       지금 장소에 있는 인물을 클릭 (없으면 실패)
 ##       ("wait",)               시간 보내기 버튼
+##       ("sleep", 초)           그냥 기다리기 (연출이 끝난 뒤 스크린샷을 찍을 때)
 ##       ("shot", 이름)          스크린샷
 ##       ("expect", "식", "설명") 식이 참인지 검사해 PASS/FAIL 기록
 ##       ("choose", 번호)        다음 선택지에서 고를 번호
@@ -133,6 +134,9 @@ init -45 python:
                     eval(step[1], store.__dict__)(*step[2:])
                 elif kind == "log":
                     self.log(step[1])
+                elif kind == "sleep":                      # 다음 단계까지 step[1] 초 기다리기
+                    self.last_action = now + step[1] - 0.7
+                    return None
                 else:
                     self.last_action = now
                     return self.act(step)

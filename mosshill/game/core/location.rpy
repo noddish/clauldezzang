@@ -18,6 +18,7 @@
 ## ============================================================================
 
 default here = "guild_hall"
+default npc_greet = False      # 방금 장소에 들어왔는가 (장소 안 인물이 고개를 드는 연출)
 default destination = None
 default visited = set()
 
@@ -86,20 +87,25 @@ init -25 python:
 
     class NpcScene(object):
         """장소 안 인물 그림 (원작처럼 그 장소에서 뭔가 하는 모습).
-        images/scenes/scene_<장소>_<인물>_<day|night>.png — 화면 크기, 인물 부분만 불투명
-        images/scenes/mask_scene_<장소>_<인물>.png       — 클릭·하이라이트할 인물 윤곽"""
+        images/scenes/scene_<장소>_<인물>_busy_<day|night>.png — 하던 일을 보는 모습
+        images/scenes/scene_<장소>_<인물>_look_<day|night>.png — 고개를 들어 앞(들어온 카이)을 보는 모습
+        images/scenes/mask_scene_<장소>_<인물>.png             — 클릭·하이라이트할 인물 윤곽
+        그림은 모두 화면 크기, 인물 부분만 불투명 (두 자세가 같은 모양으로 오려져 있어 겹쳐 바꿔도 비치지 않는다)"""
         def __init__(self, loc_id, mid):
-            base = "images/scenes/%%s_%s_%s" % (loc_id, mid)
-            self.picture = (base % "scene") + ("_night.png" if is_dark() else "_day.png")
-            self.mask = (base % "mask_scene") + ".png"
+            base = "images/scenes/scene_%s_%s_%%s_%s.png" % (loc_id, mid, "night" if is_dark() else "day")
+            self.busy = base % "busy"
+            self.look = base % "look"
+            self.mask = "images/scenes/mask_scene_%s_%s.png" % (loc_id, mid)
 
-        def hover(self):
-            return At(AlphaMask(self.picture, self.mask), obj_hover)
+        def hover(self, picture):
+            return At(AlphaMask(picture, self.mask), obj_hover)
 
     def npc_scene(loc_id, mid):
         """그 장소용 인물 그림이 있으면 NpcScene, 없으면 None (→ 대화용 큰 그림을 세운다)"""
         sc = NpcScene(loc_id, mid)
-        return sc if renpy.loadable(sc.picture) and renpy.loadable(sc.mask) else None
+        if all(renpy.loadable(f) for f in (sc.busy, sc.look, sc.mask)):
+            return sc
+        return None
 
 
     ## ---------------------------------------------------------------- 화면 버튼 동작
@@ -143,7 +149,9 @@ label main_loop:
         call expression _event
         jump main_loop
     scene expression location_bg(here)
-    call screen location_view(here)
+    ## 방금 들어왔으면 장소 안 인물이 하던 일을 멈추고 고개를 든다 (한 번만)
+    $ _greet, npc_greet = npc_greet, False
+    call screen location_view(here, _greet)
     jump main_loop
 
 
@@ -154,6 +162,7 @@ label go_to:
     if _return:
         jump main_loop
     $ here = _dest
+    $ npc_greet = True
     $ _first = _dest not in visited
     $ visited.add(_dest)
     scene expression location_bg(here)
@@ -177,12 +186,18 @@ init -10 python:
 transform obj_hover:
     matrixcolor hover_matrix()
 
+## 장소 안 인물: 들어오면 잠깐 하던 일을 보다가 고개를 들어 앞을 본다 (look 그림이 서서히 겹쳐짐)
+transform npc_look_up:
+    alpha 0.0
+    pause 0.6
+    linear 0.3 alpha 1.0
+
 transform npc_spot(x):
     xcenter x yalign 1.0
     xzoom (-1.0 if x < 0.5 else 1.0)     # 왼쪽에 서면 화면 가운데를 보게 뒤집기
     matrixcolor light_matrix()            # 밤에는 푸르스름하게
 
-screen location_view(loc_id):
+screen location_view(loc_id, greet=False):
     tag location
     add location_bg(loc_id)
 
@@ -208,11 +223,14 @@ screen location_view(loc_id):
     for mid, x in npcs_here(loc_id):
         $ sc = npc_scene(loc_id, mid)
         if sc:
-            ## 그 장소에서 뭔가 하는 모습 (배경의 일부처럼) — 마우스를 올리면 인물만 밝게
-            add sc.picture
+            ## 그 장소에서 뭔가 하는 모습 (배경의 일부처럼). 방금 들어왔으면 고개를 들어 앞을 본다.
+            ## 마우스를 올리면 인물만 밝게
+            add sc.busy
+            if greet:
+                add sc.look at npc_look_up
             imagebutton:
                 idle Null(1280, 720)
-                hover sc.hover()
+                hover sc.hover(sc.look if greet else sc.busy)
                 focus_mask sc.mask
                 action TalkTo(mid)
                 tooltip "%s와 대화" % CHAR_NAMES.get(mid, mid)

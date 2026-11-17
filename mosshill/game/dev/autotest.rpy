@@ -78,9 +78,10 @@ init python:
             for mid in spots:
                 if npc_scene(lid, mid) is None:
                     out.append("장소 인물 그림 없음: %s/%s (images/scenes/)" % (lid, mid))
-                for tod in ("day", "night"):
-                    if not renpy.loadable("images/scenes/scene_%s_%s_%s.png" % (lid, mid, tod)):
-                        out.append("장소 인물 %s 그림 없음: %s/%s" % (tod, lid, mid))
+                for st in ("busy", "look"):
+                    for tod in ("day", "night"):
+                        if not renpy.loadable("images/scenes/scene_%s_%s_%s_%s.png" % (lid, mid, st, tod)):
+                            out.append("장소 인물 그림 없음: %s/%s %s %s" % (lid, mid, st, tod))
         need += ["icon_" + i for i in DATA.items] + ["enemy_" + e for e in DATA.enemies]
         for who, faces in CAST_FACES.items():
             need += ["%s_body" % who] + ["%s_face_%s" % (who, f) for f in faces]
@@ -129,8 +130,8 @@ label autotest_m0:
     ## 장소 안 인물 (밤의 길드 홀에서 검을 닦는 루비) + 마우스를 올렸을 때 인물만 밝게
     python:
         _sc = npc_scene("guild_hall", "ruby")
-    show expression _sc.picture as scenetest
-    show expression _sc.hover() as hovertest
+    show expression _sc.look as scenetest
+    show expression _sc.hover(_sc.look) as hovertest
     show screen autoshot("m0_npc_scene_hover")
     n "장소 안 인물에 마우스를 올린 모습."
     hide screen autoshot
@@ -168,8 +169,10 @@ init python:
         ("expect", "here == 'guild_hall' and MAIN.is_state('board')", "인트로 후 길드 홀, 메인=board"),
         ("click", "kitchen"),
         ("expect", INNPC % "ruby", "아침 부엌에 루비"),
-        ("shot", "m1_02_kitchen_ruby"),
+        ("sleep", 1.2),
+        ("shot", "m1_02_kitchen_ruby"),                 # 들어오자 고개를 들어 앞을 봄
         ("talk", "ruby"),
+        ("shot", "m1_02b_kitchen_after_talk"),          # 대화가 끝나면 다시 하던 일
         ("click", "back"), ("click", "door"),
         ("shot", "m1_03_map"),
         ("click", "forest"),

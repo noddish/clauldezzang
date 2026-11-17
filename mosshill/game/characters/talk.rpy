@@ -8,6 +8,7 @@ default ruby_chat_day = 0       # 루비 잡담 신뢰도 보너스를 하루 �
 ## ---------------------------------------------------------------- 루비
 label ruby_talk:
     scene expression location_bg(here)
+    show kai at stage_left
     show ruby at stage_right
     with dissolve
 
@@ -50,6 +51,8 @@ label ruby_talk:
             $ add_bond("ruby", 2)
 
     hide ruby
+
+    hide kai
     with dissolve
     jump main_loop
 
@@ -57,6 +60,7 @@ label ruby_talk:
 ## ---------------------------------------------------------------- 마르타
 label martha_talk:
     scene expression location_bg(here)
+    show kai at stage_left
     show martha at stage_right
     with dissolve
 
@@ -84,6 +88,8 @@ label martha_talk:
         m "뭐 마실래? …농담이야, 넌 아직 일할 시간이잖아."
 
     hide martha
+
+    hide kai
     with dissolve
     jump main_loop
 
@@ -91,6 +97,7 @@ label martha_talk:
 ## ---------------------------------------------------------------- 핍
 label pip_talk:
     scene expression location_bg(here)
+    show kai at stage_left
     show pip at stage_right
     with dissolve
 
@@ -110,5 +117,7 @@ label pip_talk:
         p "어서 오세요~ 물건 구경은 진열장에서! 슬라임 젤리나 고블린 송곳니도 사들여요."
 
     hide pip
+
+    hide kai
     with dissolve
     jump main_loop
