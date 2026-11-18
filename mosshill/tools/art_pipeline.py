@@ -288,7 +288,11 @@ def do_object(raw):
 ## RAW/<장소>.png                    배경 원본 (인물 없음)
 ## RAW/scene_<장소>_<인물>_busy.png  1) 배경에 인물을 함께 그린 그림 — 크기·위치·색감의 기준
 ## RAW/pose_<장소>_<인물>_busy.png   2) 1) 을 견본으로 인물만 크게 (1024x1536 투명) — 하던 일을 보는 모습
-## RAW/pose_<장소>_<인물>_look.png   2) 에서 눈·입만 바꿔 앞(카메라)을 보는 모습
+## RAW/pose_<장소>_<인물>_look.png   2) 에서 눈·입만 바꿔 앞(카메라)을 보는 모습 (look_from 이 "profile" 이면 안 씀)
+## 얼굴이 대화 그림과 달라지지 않게 (look_from: "profile"):
+##   2) 는 '대화 그림'을 고칠 대상(1번)으로 넣고 팔·손·소품만 바꾼다 (1) 장면은 자세 견본으로만) → 머리 위치·크기가 그대로.
+##   앞을 보는 얼굴은 AI 로 그리지 않고 대화 그림(RAW/<인물>.png)의 얼굴 영역(CHARS face_box)을 맞춰 옮겨 붙인다.
+##   2) 의 투명 배경에 안개가 남으면 tools/cutout.py 로 먼저 정리한다.
 ## tools/art_scenes.json 의 place:
 ##   ref       1) 에서 인물이 있는 곳 다각형 (화면 1280x720 좌표) — 이 안에서 배경과 다른 곳 = 인물 실루엣
 ##   cut       이 y 아래는 가구(바·식탁·계산대) 뒤라 안 보임 (없으면 null) — 가구 윗면의 '뒤쪽' 끝.
@@ -378,11 +382,12 @@ def fit_to(sil, char, cut, upper=0.6):
     return best
 
 
-def look_from_busy(busy, look):
-    """look 그림에서 머리 쪽(테두리 상자 위 45%)의 달라진 곳만 busy 에 합친다 → 바뀔 때 몸이 흔들리지 않는다"""
+def look_from_busy(busy, look, box=None):
+    """look 그림에서 머리 쪽의 달라진 곳만 busy 에 합친다 → 바뀔 때 몸이 흔들리지 않는다.
+    box 가 없으면 테두리 상자 위 45%, 있으면 그 상자(얼굴 영역) 안만."""
     x0, y0, x1, y1 = busy.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
-    head = (x0, y0, x1, y0 + int((y1 - y0) * 0.45))
-    d, s, dx, dy = register(busy, look, (head[0], head[1], head[2], head[3] + 60))
+    head = box or (x0, y0, x1, y0 + int((y1 - y0) * 0.45))
+    d, s, dx, dy = register(busy, look, (head[0], head[1], head[2], head[3] + (0 if box else 60)))
     look = place(look, s, dx, dy)
     area = Image.new("L", busy.size, 0)
     ImageDraw.Draw(area).rectangle(head, fill=255)
@@ -455,9 +460,16 @@ def do_scene(raw):
         if loc.startswith("_"):
             continue
         for who, s in chars.items():
-            pose = {st: Image.open(os.path.join(raw, "pose_%s_%s_%s.png" % (loc, who, st))).convert("RGBA")
-                    for st in SCENE_STATES}
-            pose["look"] = look_from_busy(pose["busy"], pose["look"])
+            pose = {"busy": Image.open(os.path.join(raw, "pose_%s_%s_busy.png" % (loc, who))).convert("RGBA")}
+            if s.get("look_from") == "profile":
+                ## 대화 그림(원본 몸)의 얼굴을 그대로 옮긴다 → 장소 안에서 마주 보는 얼굴이 대화 그림과 똑같다.
+                ## busy 는 대화 그림을 고쳐 팔·소품만 바꾼 그림이라 머리 위치·크기가 같다
+                fb = CHARS[who]["face_box"]
+                prof = Image.open(os.path.join(raw, who + ".png")).convert("RGBA")
+                pose["look"] = look_from_busy(pose["busy"], prof, (fb[0] - 30, fb[1] - 30, fb[2] + 30, fb[3] + 30))
+            else:
+                look = Image.open(os.path.join(raw, "pose_%s_%s_look.png" % (loc, who))).convert("RGBA")
+                pose["look"] = look_from_busy(pose["busy"], look)
             pl = s["place"]
             bg = screen_of(os.path.join(raw, loc + ".png"))
             ref = screen_of(os.path.join(raw, "scene_%s_%s_busy.png" % (loc, who)))
