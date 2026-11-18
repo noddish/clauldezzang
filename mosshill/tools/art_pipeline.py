@@ -291,7 +291,9 @@ def do_object(raw):
 ## RAW/pose_<장소>_<인물>_look.png   2) 에서 눈·입만 바꿔 앞(카메라)을 보는 모습 (look_from 이 "profile" 이면 안 씀)
 ## 얼굴이 대화 그림과 달라지지 않게 (look_from: "profile"):
 ##   2) 는 '대화 그림'을 고칠 대상(1번)으로 넣고 팔·손·소품만 바꾼다 (1) 장면은 자세 견본으로만) → 머리 위치·크기가 그대로.
-##   앞을 보는 얼굴은 AI 로 그리지 않고 대화 그림(RAW/<인물>.png)의 얼굴 영역(CHARS face_box)을 맞춰 옮겨 붙인다.
+##   앞을 보는 얼굴은 AI 로 그리지 않고 대화 그림(RAW/<인물>.png)의 얼굴 영역(CHARS face_box)을 맞춰 옮겨 붙인다
+##   (얼굴 모양 타원, 턱선까지. 머리 크기가 대화 그림과 달라도 locate 가 넓게 찾아 맞춘다).
+##   대화 그림과 구도가 다른 자세(앉은 전신)는 비율이 맞는 그림을 고칠 대상으로 하고 얼굴·머리카락만 대화 그림을 따르게 한다.
 ##   2) 의 투명 배경에 안개가 남으면 tools/cutout.py 로 먼저 정리한다.
 ## tools/art_scenes.json 의 place:
 ##   ref       1) 에서 인물이 있는 곳 다각형 (화면 1280x720 좌표) — 이 안에서 배경과 다른 곳 = 인물 실루엣
@@ -382,7 +384,33 @@ def fit_to(sil, char, cut, upper=0.6):
     return best
 
 
-def look_from_busy(busy, look, box=None):
+def locate(body, ex, box, scales=np.arange(0.40, 1.16, 0.025), k=4):
+    """ex 의 box 영역(얼굴)이 body 의 어디에 몇 배 크기로 있는지 넓은 범위에서 찾는다 (1/k 크기, FFT 상관).
+    앉은 전신처럼 머리가 대화 그림보다 작게 그려진 그림에 대화 그림 얼굴을 옮길 때 쓴다.
+    반환: (배율 s, 이동 dx, dy — place(ex, s, dx, dy) 로 맞춤, body 안의 얼굴 상자)"""
+    a = np.asarray(gray_on_white(body).resize((body.width // k, body.height // k)), np.float64)
+    patch = gray_on_white(ex).crop(box)
+    H, W = a.shape
+    ii = np.pad((a * a).cumsum(0).cumsum(1), ((1, 0), (1, 0)))      # 창 안 제곱합 (적분 영상)
+    best = None
+    for sc in scales:
+        tw, th = max(4, round(patch.width * sc / k)), max(4, round(patch.height * sc / k))
+        if tw >= W or th >= H:
+            continue
+        t = np.asarray(patch.resize((tw, th), Image.LANCZOS), np.float64)
+        shape = (H + th - 1, W + tw - 1)
+        full = np.fft.irfft2(np.fft.rfft2(a, shape) * np.fft.rfft2(t[::-1, ::-1], shape), shape)
+        corr = full[th - 1:H, tw - 1:W]
+        win = ii[th:, tw:] - ii[:-th, tw:] - ii[th:, :-tw] + ii[:-th, :-tw]
+        ssd = (win - 2 * corr + (t * t).sum()) / t.size
+        y, x = np.unravel_index(np.argmin(ssd), ssd.shape)
+        if best is None or ssd[y, x] < best[0]:
+            best = (ssd[y, x], sc, x * k, y * k, tw * k, th * k)
+    _, sc, x, y, w, h = best
+    return sc, round(x - box[0] * sc), round(y - box[1] * sc), (x, y, x + w, y + h)
+
+
+def look_from_busy(busy, look, box=None, oval=False):
     """look 그림에서 머리 쪽의 달라진 곳만 busy 에 합친다 → 바뀔 때 몸이 흔들리지 않는다.
     box 가 없으면 테두리 상자 위 45%, 있으면 그 상자(얼굴 영역) 안만."""
     x0, y0, x1, y1 = busy.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
@@ -390,7 +418,10 @@ def look_from_busy(busy, look, box=None):
     d, s, dx, dy = register(busy, look, (head[0], head[1], head[2], head[3] + (0 if box else 60)))
     look = place(look, s, dx, dy)
     area = Image.new("L", busy.size, 0)
-    ImageDraw.Draw(area).rectangle(head, fill=255)
+    if oval:        # 얼굴 모양 타원 — 상자 모서리(목·옷깃·어깨)는 옮기지 않는다 (자세가 달라 얼룩이 됨)
+        ImageDraw.Draw(area).ellipse(head, fill=255)
+    else:
+        ImageDraw.Draw(area).rectangle(head, fill=255)
     area = area.filter(ImageFilter.GaussianBlur(10))
     diff = ImageChops.difference(gray_on_white(busy), gray_on_white(look)).filter(ImageFilter.GaussianBlur(2))
     mask = ImageChops.multiply(diff.point(lambda v: 255 if v > 14 else 0).filter(ImageFilter.MaxFilter(15)), area)
@@ -464,9 +495,15 @@ def do_scene(raw):
             if s.get("look_from") == "profile":
                 ## 대화 그림(원본 몸)의 얼굴을 그대로 옮긴다 → 장소 안에서 마주 보는 얼굴이 대화 그림과 똑같다.
                 ## busy 는 대화 그림을 고쳐 팔·소품만 바꾼 그림이라 머리 위치·크기가 같다
+                ## 머리 크기·위치가 대화 그림과 다르면(앉은 전신 등) 먼저 얼굴을 넓게 찾아 대략 맞춘 뒤 다듬는다
                 fb = CHARS[who]["face_box"]
                 prof = Image.open(os.path.join(raw, who + ".png")).convert("RGBA")
-                pose["look"] = look_from_busy(pose["busy"], prof, (fb[0] - 30, fb[1] - 30, fb[2] + 30, fb[3] + 30))
+                sc, dx, dy, (fx0, fy0, fx1, fy1) = locate(pose["busy"], prof, fb)
+                prof = place(prof, sc, dx, dy)
+                m = round(30 * sc)
+                ## 아래쪽은 턱선까지만 (목은 자세마다 각도가 달라 옮기면 옷 위에 살색 얼룩이 생긴다)
+                pose["look"] = look_from_busy(pose["busy"], prof, (fx0 - m, fy0 - m, fx1 + m, fy1 - 2 * m), oval=True)
+                print("      대화 그림 얼굴: 배율 %.2f, 위치 %s" % (sc, (fx0, fy0, fx1, fy1)))
             else:
                 look = Image.open(os.path.join(raw, "pose_%s_%s_look.png" % (loc, who))).convert("RGBA")
                 pose["look"] = look_from_busy(pose["busy"], look)
