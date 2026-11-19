@@ -543,8 +543,69 @@ def do_scene(raw):
                 print("      비율: 가구 위로 보이는 몸 %.0fcm (실제라면 %.0fcm) = %.2f배%s" % (seen, want, ratio, warn))
 
 
+## ---------------------------------------------------------------- 지도 장식 (구름·갈매기)
+## RAW/map_fx_sheet.png  위 절반: 구름 3개 (큰 것부터), 아래 절반: 갈매기 날갯짓 4단계 (머리가 오른쪽)
+## → images/map_fx/cloud_<n>.png + cloud_<n>_shadow.png (땅에 드리울 그림자), gull_<n>.png (부리 끝을 맞춰 정렬)
+MAP_CLOUD_WIDTHS = (270, 210, 150)      # 화면(1280x720)에서의 폭 — 건물을 가리지 않을 만큼
+MAP_GULL_WIDTH = 64                     # 날개를 편 갈매기 폭 — 흰 점이 아니라 새로 보일 만큼
+
+
+def sheet_pieces(sheet, region):
+    """region 안에서 가로로 떨어져 있는 그림들을 왼쪽부터 잘라 낸다"""
+    sub = sheet.crop(region)
+    cols = (np.asarray(sub.getchannel("A")) > 40).any(axis=0)
+    out, x = [], 0
+    while x < len(cols):
+        if cols[x]:
+            s = x
+            while x < len(cols) and cols[x]:
+                x += 1
+            if x - s > 20:
+                p = sub.crop((s, 0, x, sub.height))
+                out.append(p.crop(p.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()))   # 투명한 곳의 색은 무시
+        else:
+            x += 1
+    return out
+
+
+def do_mapfx(raw):
+    sheet = Image.open(os.path.join(raw, "map_fx_sheet.png")).convert("RGBA")
+    out = os.path.join(IMG, "map_fx")
+    os.makedirs(out, exist_ok=True)
+    w, h = sheet.size
+    clouds = sorted(sheet_pieces(sheet, (0, 0, w, h // 2)), key=lambda p: -p.width)
+    for i, (c, cw) in enumerate(zip(clouds, MAP_CLOUD_WIDTHS), 1):
+        c = c.resize((cw, round(c.height * cw / c.width)), Image.LANCZOS)
+        c.save(os.path.join(out, "cloud_%d.png" % i), optimize=True)
+        pad = 16                                    # 그림자: 같은 모양을 검게, 옅게, 흐리게
+        sh = Image.new("L", (c.width + 2 * pad, c.height + 2 * pad), 0)
+        sh.paste(c.getchannel("A").point(lambda v: v * 0.22), (pad, pad))
+        shadow = Image.new("RGBA", sh.size, (20, 24, 10, 0))
+        shadow.putalpha(sh.filter(ImageFilter.GaussianBlur(8)))
+        shadow.save(os.path.join(out, "cloud_%d_shadow.png" % i), optimize=True)
+        print("mapfx cloud_%d %s" % (i, c.size))
+    gulls = sheet_pieces(sheet, (0, h // 2, w, h))
+    ## 부리(노란색) 끝을 기준으로 4장을 같은 자리에 맞춘다 → 날갯짓할 때 몸이 흔들리지 않는다
+    tips = []
+    for g in gulls:
+        a = np.asarray(g).astype(int)
+        yel = (a[..., 0] > 190) & (a[..., 1] > 140) & (a[..., 2] < 120) & (a[..., 3] > 128)
+        ys, xs = np.nonzero(yel)
+        i = xs.argmax()
+        tips.append((xs[i], ys[i]))
+    left = max(tx for tx, ty in tips); top = max(ty for tx, ty in tips)
+    cw = max(left - tx + g.width for (tx, ty), g in zip(tips, gulls))
+    ch = max(top - ty + g.height for (tx, ty), g in zip(tips, gulls))
+    scale = MAP_GULL_WIDTH / max(g.width for g in gulls)
+    for i, ((tx, ty), g) in enumerate(zip(tips, gulls), 1):
+        canvas = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
+        canvas.alpha_composite(g, (left - tx, top - ty))
+        canvas.resize((round(cw * scale), round(ch * scale)), Image.LANCZOS).save(os.path.join(out, "gull_%d.png" % i), optimize=True)
+    print("mapfx gull x%d %s" % (len(gulls), (round(cw * scale), round(ch * scale))))
+
+
 STEPS = {"bg": do_bg, "sprite": do_sprite, "face": do_face, "enemy": do_enemy,
-         "icon": do_icon, "object": do_object, "scene": do_scene}
+         "icon": do_icon, "object": do_object, "scene": do_scene, "mapfx": do_mapfx}
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

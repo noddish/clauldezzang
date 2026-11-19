@@ -209,6 +209,8 @@ init python:
         ("shot", "m1_02b_kitchen_after_talk"),          # 대화가 끝나면 다시 하던 일
         ("click", "back"), ("click", "door"),
         ("shot", "m1_03_map"),
+        ("sleep", 9.0),
+        ("shot", "m1_03c_map_later"),                   # 구름이 흘러가고 갈매기가 지나가는 중
         ("click", "forest"),
         ("expect", "here == 'map'", "의뢰 전에는 숲이 잠김"),
         ("click", "shop"),

@@ -271,4 +271,9 @@ screen location_view(loc_id, greet=False):
                 action TalkTo(mid)
                 tooltip "%s와 대화" % CHAR_NAMES.get(mid, mid)
 
+    ## 장소 장식 (지도의 구름·새 같은 움직이는 그림) — screen ambient_<장소> 가 있으면 맨 위에 얹는다.
+    ## add 로 넣은 그림은 마우스를 받지 않아서 아래 물건 클릭을 막지 않는다.
+    if renpy.has_screen("ambient_" + loc_id):
+        use expression ("ambient_" + loc_id)
+
     use hud

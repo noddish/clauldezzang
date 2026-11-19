@@ -103,6 +103,9 @@ python3 tools/art_pipeline.py <원본폴더> object    # 클릭 모양만 (tools
   앞을 보는 얼굴은 대화 그림의 얼굴을 위치를 맞춰 그대로 옮겨 붙인다(`look_from: profile`).
   투명 배경으로 생성해도 인물 주변에 안개가 남는 경우가 있어 `tools/cutout.py`(배경 제거 모델)로 정리한다.
 - 밤(저녁·밤)에는 인물에도 푸른 색조를 입힌다 (`motions.rpy` 의 `light_matrix`).
+- 지도 장식 (`locations/map/map_fx.rpy`, 그림 `images/map_fx/` ← `art_pipeline.py mapfx`): 반투명 구름 3개가 속도를 달리해
+  흐르며 땅에 그림자를 드리우고, 갈매기 무리가 날갯짓(4장 반복)하며 가끔 지나간다. 장소 화면은 `screen ambient_<장소>` 가
+  있으면 맨 위에 얹는다 (클릭은 막지 않음).
 - 마우스를 올리면 색을 몇 배로 곱해 밝힌다 (밝기를 더하면 밤 그림이 뿌옇게 뜸, `location.rpy` 의 `hover_matrix`).
 
 ## 밸런스 (M2 기준, `docs/balance_report.txt`)

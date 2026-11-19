@@ -117,6 +117,8 @@
 | 잡화점 핍 (예전 넓은 배경판, 안경 추가본) | `img_mwk78bq8hfBDZSQl` / `img_mwk78mczfQ4x80FA` |
 | 광장 핍 (술통 포함) | `img_mwk6owfupJ7J4qRB` / `img_mwk6zn45hSa75y0G` |
 
+| 지도 장식 (구름 3 + 갈매기 날갯짓 4단계, 투명 배경 한 장) | `img_mwn4x49yTdbjTHoJ` — 지도를 화풍 견본으로. `art_pipeline.py mapfx` 가 잘라 크기를 맞춤 |
+
 이미지 서버 제한: **하루 100회, 분당 6회**. 여러 장은 6장씩 나눠 보낸다.
 
 ## 6. 저녁·밤 배경 — 다시 그리기 계획 (아직 실행하지 않음)
