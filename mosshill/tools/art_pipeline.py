@@ -543,6 +543,47 @@ def do_scene(raw):
                 print("      비율: 가구 위로 보이는 몸 %.0fcm (실제라면 %.0fcm) = %.2f배%s" % (seen, want, ratio, warn))
 
 
+## ---------------------------------------------------------------- 지도 건물 조각
+## 원작처럼 지도를 겹으로: 바닥 지도(건물을 지운 그림) + 장소마다 건물 조각. 본편에서 장소가 늘면 조각만 더하고,
+## 잠긴 곳은 조각만 흐리게, 이야기에 따라 건물 그림을 바꿀 수도 있다.
+## RAW/map_full.png  건물까지 있는 원래 지도      RAW/map.png  건물만 지운 바닥 지도 (bg 단계가 bg_map_* 로 만듦)
+## 조각 = 두 그림이 확실히 다른 곳(건물·그 그림자) 중 그 장소 클릭 다각형 주변 (MAP_BUILDINGS). 건물을 지우지 않은 곳(광장·숲)은 다각형 모양.
+## → images/objects/piece_map_<물건>_<day|night>.png (화면 크기, 조각만 불투명)
+def fill_holes(mask):
+    """닫힌 구멍 메우기 (바깥과 이어지지 않은 빈 곳)"""
+    im = mask.copy()
+    ImageDraw.floodfill(im, (0, 0), 128)
+    return im.point(lambda v: 0 if v == 128 else 255)
+
+
+MAP_BUILDINGS = ("guild", "tavern", "shop")    # 바닥 지도에서 지운 건물 (나머지 광장·숲은 바닥 지도에 그대로 있다)
+
+
+def do_mappiece(raw):
+    with open(os.path.join(ROOT, "tools", "art_objects.json"), encoding="utf-8") as f:
+        polys = json.load(f)["map"]
+    full, base = screen_of(os.path.join(raw, "map_full.png")), screen_of(os.path.join(raw, "map.png"))
+    diff = ImageChops.difference(full, base).filter(ImageFilter.GaussianBlur(1.5))
+    diff = Image.fromarray(((np.asarray(diff).max(axis=2) > 38) * 255).astype(np.uint8))
+    out = os.path.join(IMG, "objects")
+    for oid, poly in polys.items():
+        area = Image.new("L", SCREEN, 0)
+        ImageDraw.Draw(area).polygon([tuple(p) for p in poly], fill=255)
+        roi = area.filter(ImageFilter.MaxFilter(91))                     # 건물은 클릭 다각형보다 조금 크다 (굴뚝·간판)
+        m = ImageChops.multiply(diff, roi)
+        m = m.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.MinFilter(9))      # 틈 메우기
+        m = fill_holes(m).filter(ImageFilter.MinFilter(5)).filter(ImageFilter.MaxFilter(5))   # 구멍 메우고 잡티 지우기
+        kind = "건물"
+        if oid not in MAP_BUILDINGS:
+            m, kind = area, "다각형"                                       # 바닥 지도에도 남아 있는 곳 (광장·숲)
+        alpha = m.filter(ImageFilter.GaussianBlur(1.2))
+        for tod, img in (("day", full), ("night", night_filter(full))):
+            piece = img.convert("RGBA")
+            piece.putalpha(alpha)
+            piece.save(os.path.join(out, "piece_map_%s_%s.png" % (oid, tod)), optimize=True)
+        print("mappiece %-7s %s %s" % (oid, kind, alpha.point(lambda v: 255 if v > 128 else 0).getbbox()))
+
+
 ## ---------------------------------------------------------------- 지도 장식 (구름·갈매기)
 ## RAW/map_fx_sheet.png  위 절반: 구름 3개 (큰 것부터), 아래 절반: 갈매기 날갯짓 4단계 (머리가 오른쪽)
 ## → images/map_fx/cloud_<n>.png + cloud_<n>_shadow.png (땅에 드리울 그림자), gull_<n>.png (부리 끝을 맞춰 정렬)
@@ -605,7 +646,7 @@ def do_mapfx(raw):
 
 
 STEPS = {"bg": do_bg, "sprite": do_sprite, "face": do_face, "enemy": do_enemy,
-         "icon": do_icon, "object": do_object, "scene": do_scene, "mapfx": do_mapfx}
+         "icon": do_icon, "object": do_object, "scene": do_scene, "mapfx": do_mapfx, "mappiece": do_mappiece}
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

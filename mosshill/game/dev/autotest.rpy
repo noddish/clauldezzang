@@ -261,7 +261,9 @@ init python:
         ("expect", INNPC % "pip", "저녁 광장에 핍"),
         ("talk", "pip"),
         ("expect", "MAIN.is_state('day2_rest') and not has_item('pip_cargo')", "짐 반환"),
-        ("click", "map"), ("wait",),
+        ("click", "map"),
+        ("shot", "m1_07b_map_evening"),                 # 저녁: 잡화점은 문을 닫아 흐리게
+        ("wait",),
         ("click", "forest"),
         ("expect", "here == 'map' and tod == 3", "밤에는 숲이 잠김"),
         ("click", "guild"), ("click", "stairs"), ("click", "bed"),

@@ -58,10 +58,34 @@ init -25 python:
             path = "images/objects/mask_%s_%s.png" % (loc_id, self.id)
             return path if renpy.loadable(path) else None
 
+        def piece(self, loc_id):
+            """따로 그린 조각 (지도의 건물 등, images/objects/piece_<장소>_<물건>_<day|night>.png, 화면 크기). 없으면 None"""
+            tod = "night" if is_dark() and LOC[loc_id].night_bg else "day"
+            for t in (tod, "day"):
+                name = "piece_%s_%s_%s" % (loc_id, self.id, t)
+                if renpy.has_image(name):
+                    return name
+            return None
+
+        def locked(self):
+            """이동하는 물건인데 지금 갈 수 없으면 짧은 이유 (core/locks.rpy), 아니면 None"""
+            if isinstance(self.action, MoveTo):
+                return lock_short(store.here, self.action.loc_id)
+            return None
+
         def hover_image(self, loc_id):
-            """마우스를 올렸을 때: 지금 배경을 물건 모양으로 잘라 밝게"""
+            """마우스를 올렸을 때: 조각이 있으면 조각을 밝게, 없으면 지금 배경을 물건 모양으로 잘라 밝게.
+            (버튼은 rect 위치에 있으니 화면 크기 조각은 그만큼 거꾸로 옮겨 그린다)"""
+            pc = self.piece(loc_id)
+            if pc:
+                look = At(pc, obj_locked_hover if self.locked() else obj_hover)
+                return Transform(look, xoffset=-self.rect[0], yoffset=-self.rect[1])
             piece = AlphaMask(Crop(self.rect, location_bg(loc_id)), self.mask(loc_id))
             return At(piece, obj_hover)
+
+        def tooltip(self):
+            why = self.locked()
+            return "%s · %s" % (self.tip, why) if why else self.tip
 
     def location_bg(loc_id):
         loc = LOC[loc_id]
@@ -209,6 +233,13 @@ init -10 python:
 transform obj_hover:
     matrixcolor hover_matrix()
 
+## 지금 갈 수 없는 장소 (지도의 건물 조각): 흐리고 어둡게. 마우스를 올리면 조금만 덜 어둡게 + 이유
+## (밝기를 '빼면' 조각이 새까매진다 — 색을 '곱해서' 어둡게)
+transform obj_locked:
+    matrixcolor SaturationMatrix(0.25) * TintMatrix("#8c8c8c")
+transform obj_locked_hover:
+    matrixcolor SaturationMatrix(0.4) * TintMatrix("#b4b4b4")
+
 ## 장소 안 인물: 들어오면 잠깐 하던 일을 보다가 고개를 들어 앞을 본다 (look 그림이 서서히 겹쳐짐)
 transform npc_look_up:
     alpha 0.0
@@ -228,6 +259,12 @@ screen location_view(loc_id, greet=False):
     tag location
     add location_bg(loc_id)
 
+    ## 따로 그린 조각(지도의 건물)은 먼저 깐다 — 갈 수 없는 곳은 흐리게
+    for o in visible_objects(loc_id):
+        $ pc = o.piece(loc_id)
+        if pc:
+            add pc at (obj_locked if o.locked() else Transform())
+
     for o in visible_objects(loc_id):
         $ mask = o.mask(loc_id)
         if mask:
@@ -237,7 +274,7 @@ screen location_view(loc_id, greet=False):
                 hover o.hover_image(loc_id)
                 focus_mask mask
                 action o.action
-                tooltip o.tip
+                tooltip o.tooltip()
         else:
             button:
                 area o.rect
