@@ -1,0 +1,174 @@
+{
+ "cell": [
+  128,
+  128
+ ],
+ "anchor": [
+  64,
+  120
+ ],
+ "frames": [
+  "walk_0",
+  "walk_1",
+  "walk_2",
+  "walk_3",
+  "walk_4",
+  "walk_5",
+  "walk_6",
+  "walk_7",
+  "idle"
+ ],
+ "order": "접지,하강,통과,상승,접지,하강,통과,상승,정지",
+ "palette": [
+  "#f1efea",
+  "#dcd5d4",
+  "#c5bfc5",
+  "#a7cbed",
+  "#b4adb4",
+  "#92bce8",
+  "#84b1e2",
+  "#eaa667",
+  "#a39ba3",
+  "#74a2d5",
+  "#918992",
+  "#6693cb",
+  "#d2834c",
+  "#aa6438",
+  "#7e7681",
+  "#686270",
+  "#5582bf",
+  "#4670b1",
+  "#385c95",
+  "#545062",
+  "#2059de",
+  "#e35835",
+  "#d03b26",
+  "#bc2d21",
+  "#a7221f",
+  "#8e191c",
+  "#784023",
+  "#404054",
+  "#731218",
+  "#531714",
+  "#133aa1",
+  "#33313f",
+  "#24212b",
+  "#0c266d",
+  "#16141e",
+  "#3a0b0c",
+  "#200607",
+  "#0c0509",
+  "#060e2b",
+  "#030103",
+  "#ecc334",
+  "#e19759"
+ ],
+ "head_offset_x": [
+  0,
+  1,
+  0,
+  0,
+  0,
+  1,
+  0,
+  0,
+  -1
+ ],
+ "head_top": [
+  4,
+  4,
+  2,
+  1,
+  4,
+  4,
+  2,
+  1,
+  2
+ ],
+ "normalize": [
+  {
+   "height": 471,
+   "body_scale": 0.9811,
+   "xshift": -1,
+   "head_dx": 1,
+   "head_dy": -4,
+   "reg_cost": 10.87
+  },
+  {
+   "height": 475,
+   "body_scale": 0.9707,
+   "xshift": 1,
+   "head_dx": 3,
+   "head_dy": -4,
+   "reg_cost": 10.65
+  },
+  {
+   "height": 478,
+   "body_scale": 0.9841,
+   "xshift": 0,
+   "head_dx": 0,
+   "head_dy": 0,
+   "reg_cost": 0.0
+  },
+  {
+   "height": 477,
+   "body_scale": 0.9973,
+   "xshift": 0,
+   "head_dx": 0,
+   "head_dy": 0,
+   "reg_cost": 8.07
+  },
+  {
+   "height": 455,
+   "body_scale": 1.0254,
+   "xshift": 0,
+   "head_dx": 0,
+   "head_dy": -3,
+   "reg_cost": 10.13
+  },
+  {
+   "height": 458,
+   "body_scale": 1.0168,
+   "xshift": 1,
+   "head_dx": 3,
+   "head_dy": -4,
+   "reg_cost": 10.74
+  },
+  {
+   "height": 461,
+   "body_scale": 1.0305,
+   "xshift": 0,
+   "head_dx": 0,
+   "head_dy": -3,
+   "reg_cost": 9.7
+  },
+  {
+   "height": 461,
+   "body_scale": 1.0416,
+   "xshift": 0,
+   "head_dx": 0,
+   "head_dy": -3,
+   "reg_cost": 10.13
+  },
+  {
+   "height": 470,
+   "body_scale": 1.0054,
+   "xshift": -1,
+   "head_dx": -3,
+   "head_dy": -1,
+   "reg_cost": 12.59
+  }
+ ],
+ "h_base": 464,
+ "head_src": 3,
+ "head_iou": [
+  0.906,
+  0.903,
+  0.947,
+  1.0,
+  0.908,
+  0.902,
+  0.927,
+  0.933
+ ]
+}
