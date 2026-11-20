@@ -32,6 +32,8 @@ BGS = {
     "guild_hall": True, "guild_room": True, "guild_kitchen": True, "guild_front": False,
     "square": True, "tavern": True, "shop": True, "forest": True, "map": True,
     "cave_1": False, "cave_2": False,
+    ## 좌우 전투 배경 (옆에서 본 평평한 땅, 아군 왼쪽·적 오른쪽이 같은 땅에 선다)
+    "battle_forest": True, "battle_cave_boss": False,
 }
 
 

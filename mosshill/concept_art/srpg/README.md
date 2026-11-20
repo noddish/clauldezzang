@@ -9,8 +9,10 @@
 | `kai_battle35_1.png` | **채택** — 오른쪽을 보고 칼을 낮게 듦 (이미지 서버 `img_mwowkjbqz34hCgSu`). `_160` / `_128` 은 키 160·128px |
 | `kai_battle35_2.png` | 다른 후보 — 왼쪽을 봄 (`img_mwowklc3axGx8pii`) |
 | `kai35_compare.png` | 2.5등신 A안과 3.5등신 두 후보 비교 |
-| `sideview_mock.png` | 좌우 전투 화면 구도 시험 — 아군 왼쪽(오른쪽을 봄) / 적 오른쪽(왼쪽을 봄). 적은 새 화풍 그림, 카이 키 160px 기준 크기 (고블린 135, 독버섯 95, 슬라임 70) |
-| `sideview_boss.png` | 보스 전투 구도 시험 — 두꺼비 왕 키 300px |
+| `sideview_mock.png` | 좌우 전투 화면 — 전투 전용 숲 배경, 아군 왼쪽(오른쪽을 봄) / 적 오른쪽(왼쪽을 봄). 카이 키 160px 기준 (고블린 135, 독버섯 100, 슬라임 70) |
+| `sideview_boss.png` | 보스 전투 화면 — 전투 전용 동굴 보스 방, 두꺼비 왕 키 290px |
+
+전투 배경은 `game/images/bg/bg_battle_forest_*` · `bg_battle_cave_boss_day` (아직 전투 코드는 장소 배경을 씀 — 좌우 전투로 바꿀 때 연결).
 
 적 그림은 게임(`game/images/enemies/`)에 바로 넣었다 — 카이 전투 그림을 화풍 견본으로 다시 그림 (`tools/art_recipes.md`).
 
